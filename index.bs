@@ -65,8 +65,14 @@ traditional sense, but developed as internally-shared frameworks that are jammed
 together through internal infrastructure:
 
 ```xml
+<!-- The main document: -->
+<esi:include src="https://widgets-r-us.example/widget.include" />
+```
+
+```html
+<!-- https://widgets-r-us.example/widget.include -->
 <script>
-  <esi:include src="https://widgets-r-us.example/widget.js" />
+  /* Code goes here. */
 </script>
 ```
 
@@ -86,6 +92,7 @@ provides a proof of provenance for the code in question, allowing developers
 to ensure the integrity of their supply chain in a dynamic fashion:
 
 ```html
+<!-- https://widgets-r-us.example/widget.include -->
 <script x-inlined-content-signature="ed25519-[base64-encoded signature]"
         x-inlined-content-key="ed25519-[base64-encoded public key]">
   /* Code goes here. */
@@ -132,8 +139,6 @@ Yay!
 
 Framework {#framework}
 =========
-
-ISSUE: TODO!
 
 Validation {#validation}
 ----------

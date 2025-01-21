@@ -6,7 +6,7 @@
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <meta content="Bikeshed version c67c745b1, updated Fri Jan 17 14:27:28 2025 -0800" name="generator">
   <link href="https://mikewest.github.io/inline-integrity/" rel="canonical">
-  <meta content="0a94cbe3e8c417e03e37606a4c611db59d7ee14a" name="revision">
+  <meta content="bd6865e02efd35b85966083aefb2cd3bd10f97d0" name="revision">
   <meta content="dark light" name="color-scheme">
   <link href="https://www.w3.org/StyleSheets/TR/2021/dark.css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css">
 <style>/* Boilerplate: style-autolinks */
@@ -857,9 +857,13 @@ includes (Fastly <a href="https://docs.rs/esi/latest/esi/">implements</a> a subs
 the development team, these dependencies might not even be third-party in the
 traditional sense, but developed as internally-shared frameworks that are jammed
 together through internal infrastructure:</p>
-<pre class="language-xml highlight"><c- f>&lt;script></c->
-  <c- f>&lt;esi:include</c-> <c- e>src=</c-><c- s>"https://widgets-r-us.example/widget.js"</c-> <c- f>/></c->
-<c- f>&lt;/script></c->
+<pre class="language-xml highlight"><c- d>&lt;!-- The main document: --></c->
+<c- f>&lt;esi:include</c-> <c- e>src=</c-><c- s>"https://widgets-r-us.example/widget.include"</c-> <c- f>/></c->
+</pre>
+<pre class="language-html highlight"><c- d>&lt;!-- https://widgets-r-us.example/widget.include --></c->
+<c- p>&lt;</c-><c- f>script</c-><c- p>></c->
+  <c- d>/* Code goes here. */</c->
+<c- p>&lt;/</c-><c- f>script</c-><c- p>></c->
 </pre>
    <p>These inlined blocks are a stumbling block for developers who wish to deploy
 strong protections against injection attacks, as architrctural decisions might
@@ -874,7 +878,8 @@ relatively static constraints in the page’s <a data-link-type="dfn" href="http
 validate inlined script’s signatures against those known-good keys. This
 provides a proof of provenance for the code in question, allowing developers
 to ensure the integrity of their supply chain in a dynamic fashion:</p>
-<pre class="language-html highlight"><c- p>&lt;</c-><c- f>script</c-> <c- e>x-inlined-content-signature</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded signature]"</c->
+<pre class="language-html highlight"><c- d>&lt;!-- https://widgets-r-us.example/widget.include --></c->
+<c- p>&lt;</c-><c- f>script</c-> <c- e>x-inlined-content-signature</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded signature]"</c->
         <c- e>x-inlined-content-key</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded public key]"</c-><c- p>></c->
   <c- d>/* Code goes here. */</c->
 <c- p>&lt;/</c-><c- f>script</c-><c- p>></c->
@@ -903,7 +908,6 @@ the test Ed25519 keys from <a data-link-type="biblio" href="#biblio-rfc9421" tit
     <p>Yay!</p>
    </div>
    <h2 class="heading settled" data-level="2" id="framework"><span class="secno">2. </span><span class="content">Framework</span><a class="self-link" href="#framework"></a></h2>
-   <p class="issue" id="issue-fab26218"><a class="self-link" href="#issue-fab26218"></a> TODO!</p>
    <h3 class="heading settled" data-level="2.1" id="validation"><span class="secno">2.1. </span><span class="content">Validation</span><a class="self-link" href="#validation"></a></h3>
    <div class="algorithm" data-algorithm="has an invalid inline signature">
     <p>An element <dfn class="dfn-paneled" data-dfn-for="element" data-dfn-type="dfn" data-noexport id="element-has-an-invalid-inline-signature">has an invalid inline signature</dfn> if the
@@ -1173,7 +1177,6 @@ of additional inspection.</p>
   <h2 class="no-num no-ref heading settled" id="issues-index"><span class="content">Issues Index</span><a class="self-link" href="#issues-index"></a></h2>
   <div style="counter-reset:issue">
    <div class="issue"> These attributes have terrible placeholder names on purpose. See <a href="#name">§ 3.2 x-inlined-content-signature is a terrible attribute name</a> for some spelling options. <a class="issue-return" href="#issue-f430deba" title="Jump to section">↵</a></div>
-   <div class="issue"> TODO! <a class="issue-return" href="#issue-fab26218" title="Jump to section">↵</a></div>
    <div class="issue"> Turn this into a step that produces <var>signatures</var> and <var>keys</var> from <var>el</var>. It’ll change a lot based on the spelling option we choose in <a href="#name">§ 3.2 x-inlined-content-signature is a terrible attribute name</a>, ranging from replicating the SRI parsing model to walking
 around a bit to find keys that were placed elsewhere (headers, <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-head-element">head</a></code>,
 etc. Assume we end up with those two variables, each of which contains

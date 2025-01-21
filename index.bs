@@ -1,11 +1,11 @@
 <pre class='metadata'>
-Title: Signature-based Integrity
-Shortname: signature-based-sri
+Title: Inline Integrity
+Shortname: inline-integrity
 Level: none
 Status: w3c/CG-DRAFT
 Group: wicg
-Repository: mikewest/signature-based-sri
-URL: https://mikewest.github.io/signature-based-sri/
+Repository: mikewest/inline-integrity
+URL: https://mikewest.github.io/inline-integrity/
 Editor: Mike West, Google LLC., mkwst@google.com
 Abstract: 
     This document defines a mechanism of asserting the provenance and
@@ -17,7 +17,28 @@ Complain About: accidental-2119 yes, missing-example-ids yes
 Markup Shorthands: markdown yes, css no
 Toggle Diffs: true
 </pre>
-
+<pre class="biblio">
+{
+  "SIGSRI": {
+    "authors": [ "Mike West" ],
+    "href": "https://wicg.github.io/signature-based-sri/",
+    "title": "Signature-Based Integrity",
+    "status": "cg-draft",
+    "publisher": "WICG"
+  }
+}
+</pre>
+<pre class="link-defaults">
+spec:dom; type:dfn; text:element
+spec:html; type:element; text:link
+spec:html; type:element; text:script
+spec:html; type:element; text:style
+</pre>
+<pre class="anchors">
+urlPrefix: https://html.spec.whatwg.org/; type: dfn; spec: HTML
+    text: prepare the script element; url: #prepare-the-script-element
+    text: update a style block; url: #update-a-style-block
+</pre>
 
 Introduction {#intro}
 =====================
@@ -51,7 +72,7 @@ together through internal infrastructure:
 
 These inlined blocks are a stumbling block for developers who wish to deploy
 strong protections against injection attacks, as architrctural decisions might
-make it difficult to coordinate <{script/nonce}> attributes or content hashes
+make it difficult to coordinate <{htmlsvg-global/nonce}> attributes or content hashes
 between inlined scripts and [:Content-Security-Policy:] headers delivered
 with the page. Sites might fall back to allowing `'unsafe-inline'`, or simply
 forgoing a policy in the first place.
@@ -64,10 +85,6 @@ validate inlined script's signatures against those known-good keys. This
 provides a proof of provenance for the code in question, allowing developers
 to ensure the integrity of their supply chain in a dynamic fashion:
 
-
-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=
-hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg==
-
 ```html
 <script x-inlined-content-signature="ed25519-[base64-encoded signature]"
         x-inlined-content-key="ed25519-[base64-encoded public key]">
@@ -75,7 +92,10 @@ hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqL
 </script>
 ```
 
-<div class="example">
+ISSUE: These attributes have terrible placeholder names on purpose. See
+[[#name]] for some spelling options.
+
+<div class="example" id="intro-example">
 
 Pages will assert both a signature and a key for a given <{script}> or <{style}>
 element, either including both inline, or asserting a set of keys and assuming
@@ -92,7 +112,7 @@ the test Ed25519 keys from [[RFC9421]] to demonstrate:
 Or:
 
 ```html
-<meta name="x-inline-content-keys" content="ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=">
+<meta name="x-inline-content-key" content="ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=">
 
 <script x-inlined-content-signature="ed25519-hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg=="
   alert(1);
@@ -115,6 +135,104 @@ Framework {#framework}
 
 ISSUE: TODO!
 
+Validation {#validation}
+----------
+
+<div algorithm="has an invalid inline signature">
+
+An element <dfn for="element">has an invalid inline signature</dfn> if the
+following algorithm returns "`Invalid`" given an [=/element=] |el|:
+
+1.  ISSUE: Turn this into a step that produces |signatures| and |keys| from
+    |el|. It'll change a lot based on the spelling option we choose in
+    [[#name]], ranging from replicating the SRI parsing model to walking
+    around a bit to find keys that were placed elsewhere (headers, <{head}>,
+    etc. Assume we end up with those two variables, each of which contains
+    a list of decoded byte sequences.
+
+2.  If |signatures| is [=list/empty=], return "`Valid`".
+
+3.  Let |inline content| be |el|'s [=child text content=].
+
+4.  [=list/For each=] |signature| in |signatures|:
+
+    1.  [=list/For each=] |key| in |keys|:
+
+        1.  Execute the `Ed25519` verification algorithm as defined in Section
+            5.1.7 of [[RFC8032]] using |key| as the public key portion of the
+            verification key material (`A`), |inline content| as the message
+            (`M`), and |signature| as the signature to be verified.
+
+        2.  If verification succeeded, return "`Valid`". Otherwise [=continue=].
+
+    Note: This means that the algorithm will return "`Valid`" if *any* asserted
+    signature matches *any* required key.
+
+5.  Return "`Invalid`".
+
+    Note: If no |keys| are specified, no signatures can be validated. We could
+    punt on this condition in step 2, but it feels reasonable to fail closed if
+    a signature was asserted but couldn't be validated.
+
+
+</div>
+
+Monkey-patching HTML {#monkey-patch-html}
+--------------------
+
+The following changes wire up both <{script}> and <{style}> elements to perform
+signature validation before being used on a page:
+
+### Script execution ### {#html-script}
+
+<div algorithm="prepare the script element">
+
+We'll add a new validation step alongside the callout to CSP in step 19 of HTML's
+[=prepare the script element=] algorithm as follows:
+
+<ol start="19">
+  <li>
+    <p>
+      If <var ignore>el</var> does not have a <{script/src}> content attribute,
+      then return if either of the following statements is true:
+    </p>
+    <ul>
+      <li>
+        <p>The [=Should element's inline type behavior be blocked by Content Security Policy?=]
+           algorithm returns "`Blocked`" when given <var ignore>el</var>, "`script`", and
+           <var ignore>source text</var>.</p>
+      </li>
+      <li>
+        <p><ins><var ignore>el</var> [=element/has an invalid inline signature=].</ins></p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+</div>
+
+
+### Style application ### {#html-style}
+
+<div algorithm="update a style block">
+
+We'll add a new validation step alongside the callout to CSP in step 5 of HTML's
+[=update a style block=] algorithm as follows:
+
+<ol start="5">
+  <li>
+    <p>If the [=Should element's inline type behavior be blocked by Content Security Policy?=]
+       algorithm returns "`Blocked`" when given the <{style}> element, "`style`",
+       and the <{style}> element's [=child text content=], then return.</p>
+  </li>
+  <li>
+    <p><ins>If the <{style}> element [=element/has an invalid inline signature=], then return.</ins></p>
+  </li>
+</ol>
+                      
+
+</div>
+
 
 Implementation Considerations {#implementation}
 =============================
@@ -131,7 +249,62 @@ signature than `<script> alert(1);</script>` and `<script>alert(1); </script>`.
 `x-inlined-content-signature` is a terrible attribute name {#name}
 ----------------------------------------------------------
 
-It is. We'll replace it with one that makes sense.
+It is. We'll replace it with one that makes sense. Here are some spelling options:
+
+1.  We could embed public keys in `integrity` attributes, just as we do for
+    remote resources in [[SIGSRI]], and embed signatures via the as-yet-unused
+    option syntax that [[SRI]] defines for that attribute:
+
+    ```html
+        <script integrity="ed25519-[base64-encoded public key]?signature=[base64-encoded signature]">
+            /* Code goes here. */
+        </script>
+    ```
+    
+    Beyond aesthetics and legibility, the downside of this approach is that it
+    would not allow us to specify a key elsewhere: each script would embed both
+    key and signature, which is a bit verbose.
+    
+    On the other hand, it doesn't require any new attributes, and allows us to
+    tell a somewhat clear story about the impact of `integrity` on script
+    execution.
+    
+2.  We could embed public keys in `integrity` attributes, just as we do for
+    remote resources in [[SIGSRI]], and embed signatures in a new `signature`
+    attribute:
+
+    ```html
+        <script signature="ed25519-[base64-encoded signature]"
+                integrity="ed25519-[base64-encoded public key]">
+            /* Code goes here. */
+        </script>
+    ```
+
+    This has the upside of reusing an existing attribute, and not requiring us
+    to exercise the option syntax. `signature` is also quite clear in the
+    context, though it does invite some questions about the interaction between
+    these attributes for subresource fetches that we'd need to answer.
+    
+3.  We could create inline variants of `integrity` and/or `signature` that apply
+    only to inline blocks and explicitly not to subresource requests:
+
+    ```html
+        <script inline-signature="ed25519-[base64-encoded signature]"
+                inline-integrity="ed25519-[base64-encoded public key]">
+            /* Code goes here. */
+        </script>
+    ```
+
+    or:
+
+    ```html
+        <script inline-integrity="ed25519-[base64-encoded public key]?signature=[base64-encoded signature]">
+            /* Code goes here. */
+        </script>
+    ```
+
+4.  We could rename everything in some arbitrary way that appeals to someone.
+
 
 ISSUE(WICG/signature-based-sri#42): Consider this a placeholder while we work
 through the discussion in 

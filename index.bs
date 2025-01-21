@@ -1,0 +1,209 @@
+<pre class='metadata'>
+Title: Signature-based Integrity
+Shortname: signature-based-sri
+Level: none
+Status: w3c/CG-DRAFT
+Group: wicg
+Repository: mikewest/signature-based-sri
+URL: https://mikewest.github.io/signature-based-sri/
+Editor: Mike West, Google LLC., mkwst@google.com
+Abstract: 
+    This document defines a mechanism of asserting the provenance and
+    integrity of inline script blocks, similar conceptually to other
+    mechanisms that support assertions about externally-fetched
+    resources. This is not intended to be a stand-alone specification,
+    but should fold into HTML (and potentially SRI).
+Complain About: accidental-2119 yes, missing-example-ids yes
+Markup Shorthands: markdown yes, css no
+Toggle Diffs: true
+</pre>
+
+
+Introduction {#intro}
+=====================
+
+Websites are well-understood to be compositions of resources from a variety of
+servers, woven together in one origin's context to satisfy a developer's goals.
+These resources are generally requested through elements like <{script}> and
+<{link}>, instructing user agents to make explicit requests to other servers
+on the page's behalf, and to include those resources as part of the page's
+construction:
+
+```html
+<script src="https://widgets-r-us.example/widget.js"></script>
+```
+
+Developers, however, often have reasons (performance, privacy, etc) to avoid
+asking users' agents to take responsibility for these additional requests.
+Rather than composing the page at runtime, they might choose to embed code more
+directly, copy/pasting snippets into inline <{script}> blocks, or relying upon
+layers of infrastructure to inline their dependencies through server-side
+includes (dynamic content assembly, [[esi-lang]], etc). Depending on the
+development team, these dependencies might not even be third-party in the
+traditional sense, but developed as internally-shared frameworks that are jammed
+together through internal infrastructure:
+
+```xml
+<script>
+  <esi:include src="https://widgets-r-us.example/widget.js" />
+</script>
+```
+
+These inlined blocks are a stumbling block for developers who wish to deploy
+strong protections against injection attacks, as architrctural decisions might
+make it difficult to coordinate <{script/nonce}> attributes or content hashes
+between inlined scripts and [:Content-Security-Policy:] headers delivered
+with the page. Sites might fall back to allowing `'unsafe-inline'`, or simply
+forgoing a policy in the first place.
+
+Signatures might provide an option that satisfies developers' need without
+additionally complicating deployments. In short, if developers can agree with
+their dependencies on a (set of) signing key(s), they can encode those
+relatively static constraints in the page's [=content security policy=], and
+validate inlined script's signatures against those known-good keys. This
+provides a proof of provenance for the code in question, allowing developers
+to ensure the integrity of their supply chain in a dynamic fashion:
+
+
+JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=
+hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg==
+
+```html
+<script x-inlined-content-signature="ed25519-[base64-encoded signature]"
+        x-inlined-content-key="ed25519-[base64-encoded public key]">
+  /* Code goes here. */
+</script>
+```
+
+<div class="example">
+
+Pages will assert both a signature and a key for a given <{script}> or <{style}>
+element, either including both inline, or asserting a set of keys and assuming
+their applicability to elements that only include a signature. Here, we'll use
+the test Ed25519 keys from [[RFC9421]] to demonstrate:
+
+```html
+<script x-inlined-content-signature="ed25519-hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg=="
+        x-inlined-content-key="ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=">
+  alert(1);
+</script>
+```
+
+Or:
+
+```html
+<meta name="x-inline-content-keys" content="ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=">
+
+<script x-inlined-content-signature="ed25519-hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg=="
+  alert(1);
+</script>
+```
+
+Pages can restrict execution of script through reference to these keys:
+
+```http
+Content-Security-Policy: script-src 'ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs='
+```
+
+Yay!
+
+</div>
+
+
+Framework {#framework}
+=========
+
+ISSUE: TODO!
+
+
+Implementation Considerations {#implementation}
+=============================
+
+What is being signed? {#implementation-message}
+---------------------
+
+The signature is asserted over the <{script}> or <{style}> element's
+[=child text content=], which importantly includes both leading and trailing
+whitespace. That means that `<script>alert(1);</script>` will have a different
+signature than `<script> alert(1);</script>` and `<script>alert(1); </script>`.
+
+
+`x-inlined-content-signature` is a terrible attribute name {#name}
+----------------------------------------------------------
+
+It is. We'll replace it with one that makes sense.
+
+ISSUE(WICG/signature-based-sri#42): Consider this a placeholder while we work
+through the discussion in 
+[WICG/signature-based-sri#10](https://github.com/WICG/signature-based-sri/issues/10)
+and
+[WICG/signature-based-sri#42](https://github.com/WICG/signature-based-sri/issues/42).
+
+
+How does this compare to Signature-Based Integrity? {#implementation-signature-base}
+---------------------------------------------------
+
+The [signature-based integrity](https://wicg.github.io/signature-based-sri/)
+proposal relies upon HTTP Message Signatures [[RFC9421]] to explain how
+signatures can be validated over resources requested from a remote server. As
+the request and response metadata plays an important role in how the resource
+is treated by the user agent, the intermediate
+[signature base](https://www.rfc-editor.org/rfc/rfc9421.html#name-creating-the-signature-base)
+concept is a necessary complexity that allows a server to ensure that the
+signature covers all the relevant data.
+
+Here, we have a simpler task: the entirety of the content to be validated is
+embedded in the document, available at parse time. We can work with the content
+directly, as there's no relevant metadata.
+
+This means that a resource delivered via HTTP will have a different signature
+than a resource delivered inline, even if the keys used are the same. This is
+unfortunate, but the alternative of synthesizing a signature base for inline
+content seems worse in practically every way.
+
+
+Security Considerations {#security}
+=======================
+
+Integration with CSP {#security-csp}
+--------------------
+
+Broadly, the mechanism described here aims to make it easier for developers to
+deploy protections against unintended injection attacks even while relying
+upon inlined <{script}> or <{style}> blocks. It aims to do so in a way
+consistent with existing protections like [[SRI]] and [[CSP]], giving developers
+a clear path towards more safely including their dependencies.
+
+Rather than allowing `'unsafe-inline'`, developers will have the option of
+restricting themselves to 
+
+
+Privacy Considerations {#privacy}
+======================
+
+Implications for Content Blocking {#privacy-content-blocking}
+---------------------------------
+
+Developers inline script in many cases to improve user experience, but script is
+also inlined for purposes that undercut user agency. It's more difficult, for
+example, for extensions and other mediating software to modify or block
+particular resources when they're not fetched independently, but are instead
+part of the document itself.
+
+This proposal has the potential to remove some of the security risk associated
+with inlined script, but might also be seen as encouraging inlining in ways that
+could have negative privacy implications. Two considerations mitigate this risk:
+
+1.  This proposal doesn't create any more encouragement to inline script for
+    the purposes of evading user's intent to block it than the status quo
+    already does. It allows developers to remove one risk associated with
+    inlined content, but that seems quite unlikely to shift incentives to
+    anything near the extent that content-blocking extensions already do.
+
+2.  Tying inline content to a specific public key to prove provenance might
+    provide an additional hook for content blocking scripts that could allow
+    more clean identification of a given script's owner. As these keys are
+    more static than the content itself, this proposal might actually simplify
+    the process of pointing to a specific script in a document as being worthy
+    of additional inspection.
+

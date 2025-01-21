@@ -38,8 +38,8 @@ asking users' agents to take responsibility for these additional requests.
 Rather than composing the page at runtime, they might choose to embed code more
 directly, copy/pasting snippets into inline <{script}> blocks, or relying upon
 layers of infrastructure to inline their dependencies through server-side
-includes (dynamic content assembly, [[esi-lang]], etc). Depending on the
-development team, these dependencies might not even be third-party in the
+includes (Fastly [implements](https://docs.rs/esi/latest/esi/) a subset of [[ESI-LANG]], for example). Depending on
+the development team, these dependencies might not even be third-party in the
 traditional sense, but developed as internally-shared frameworks that are jammed
 together through internal infrastructure:
 

@@ -77,7 +77,7 @@ together through internal infrastructure:
 ```
 
 These inlined blocks are a stumbling block for developers who wish to deploy
-strong protections against injection attacks, as architrctural decisions might
+strong protections against injection attacks, as architectural decisions might
 make it difficult to coordinate <{htmlsvg-global/nonce}> attributes or content hashes
 between inlined scripts and [:Content-Security-Policy:] headers delivered
 with the page. Sites might fall back to allowing `'unsafe-inline'`, or simply

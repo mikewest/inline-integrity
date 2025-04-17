@@ -33,11 +33,14 @@ spec:dom; type:dfn; text:element
 spec:html; type:element; text:link
 spec:html; type:element; text:script
 spec:html; type:element; text:style
+spec:html; type:element; text:head
+spec:infra; type:dfn; text:list
 </pre>
 <pre class="anchors">
 urlPrefix: https://html.spec.whatwg.org/; type: dfn; spec: HTML
     text: prepare the script element; url: #prepare-the-script-element
     text: update a style block; url: #update-a-style-block
+    text: import map; url: #import-map
 </pre>
 
 Introduction {#intro}
@@ -59,10 +62,11 @@ asking users' agents to take responsibility for these additional requests.
 Rather than composing the page at runtime, they might choose to embed code more
 directly, copy/pasting snippets into inline <{script}> blocks, or relying upon
 layers of infrastructure to inline their dependencies through server-side
-includes (Fastly [implements](https://docs.rs/esi/latest/esi/) a subset of [[ESI-LANG]], for example). Depending on
-the development team, these dependencies might not even be third-party in the
-traditional sense, but developed as internally-shared frameworks that are jammed
-together through internal infrastructure:
+includes (Fastly [implements](https://docs.rs/esi/latest/esi/) a subset of
+[[ESI-LANG]], for example). Depending on the development team, these dependencies
+might not even be third-party in the traditional sense, but developed as
+internally-shared frameworks that are jammed together through internal
+infrastructure:
 
 ```xml
 <!-- The main document: -->
@@ -70,10 +74,11 @@ together through internal infrastructure:
 ```
 
 ```html
-<!-- https://widgets-r-us.example/widget.include -->
+<!-- https://widgets-r-us.example/widget.include is inlined below -->
 <script>
   /* Code goes here. */
 </script>
+<!-- End of https://widgets-r-us.example/widget.include's content -->
 ```
 
 These inlined blocks are a stumbling block for developers who wish to deploy
@@ -93,35 +98,20 @@ to ensure the integrity of their supply chain in a dynamic fashion:
 
 ```html
 <!-- https://widgets-r-us.example/widget.include -->
-<script x-inlined-content-signature="ed25519-[base64-encoded signature]"
-        x-inlined-content-key="ed25519-[base64-encoded public key]">
+<script signature="ed25519-[base64-encoded signature]"
+        integrity="ed25519-[base64-encoded public key]">
   /* Code goes here. */
 </script>
 ```
 
-ISSUE: These attributes have terrible placeholder names on purpose. See
-[[#name]] for some spelling options.
-
 <div class="example" id="intro-example">
 
 Pages will assert both a signature and a key for a given <{script}> or <{style}>
-element, either including both inline, or asserting a set of keys and assuming
-their applicability to elements that only include a signature. Here, we'll use
-the test Ed25519 keys from [[RFC9421]] to demonstrate:
+element. Here, we'll use the test Ed25519 keys from [[RFC9421]] to demonstrate:
 
 ```html
-<script x-inlined-content-signature="ed25519-hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg=="
-        x-inlined-content-key="ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=">
-  alert(1);
-</script>
-```
-
-Or:
-
-```html
-<meta name="x-inline-content-key" content="ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=">
-
-<script x-inlined-content-signature="ed25519-hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg=="
+<script signature="ed25519-hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg=="
+        integrity="ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=">
   alert(1);
 </script>
 ```
@@ -131,9 +121,7 @@ Pages can restrict execution of script through reference to these keys:
 ```http
 Content-Security-Policy: script-src 'ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs='
 ```
-
-Yay!
-
+|
 </div>
 
 
@@ -143,23 +131,80 @@ Framework {#framework}
 Validation {#validation}
 ----------
 
+<div algorithm="parse element signatures">
+
+To <dfn abstract-op>parse signatures</dfn> given an [=/element=] |el|, execute
+the following steps, which return a [=list=] of [=byte sequences=]:
+
+1.  Let |result| be an empty [=list=].
+
+1.  If |el| does not have a `signature` attribute, return |result|.
+
+1.  For each |item| resulting from [=split on ASCII whitespace|splitting=] |el|'s
+    `signature` attribute's value on ASCII whitespace:
+
+    1.  Let |algorithm-and-value| be the result of [=strictly split|splitting=]
+        |item| on U+002D (`-`).
+
+    1.  If |algorithm-and-value|[0] is not "`ed25519`", [=iteration/continue=].
+
+    1.  Let |decoded| be the result of [=forgiving-base64 decoding=]
+        |algorithm-and-value|[1].
+
+    1.  If |decoded| is failure, [=iteration/continue=].
+
+    1.  [=list/Append=] |algorithm-and-value|[1] to |result|.
+
+1.  Return |result|.
+
+</div>
+
+<div algorithm="parse element keys">
+
+To <dfn abstract-op>parse keys</dfn> given an [=/element=] |el|, execute
+the following steps, which return a [=list=] of [=byte sequences=]:
+
+1.  Let |result| be an empty [=list=].
+
+1.  If |el| does not have an `integrity` attribute, return |result|.
+
+1.  For each |item| resulting from [=split on ASCII whitespace|splitting=] |el|'s
+    `integrity` attribute's value on ASCII whitespace:
+
+    1.  Let |algorithm-and-value| be the result of [=strictly split|splitting=]
+        |item| on U+002D (`-`).
+
+    1.  If |algorithm-and-value|[0] is not "`ed25519`", [=iteration/continue=].
+
+    1.  Let |decoded| be the result of [=forgiving-base64 decoding=]
+        |algorithm-and-value|[1].
+
+    1.  If |decoded| is failure, [=iteration/continue=].
+
+    1.  [=list/Append=] |algorithm-and-value|[1] to |result|.
+
+1.  Return |result|.
+
+Note: This is partially a simplification of SRI's
+[parse metadata](https://wicg.github.io/signature-based-sri/#parsing)
+algorithm. It might be reasonable to rely on that directly in the future.
+
+</div>
+
 <div algorithm="has an invalid inline signature">
 
 An element <dfn for="element">has an invalid inline signature</dfn> if the
 following algorithm returns "`Invalid`" given an [=/element=] |el|:
 
-1.  ISSUE: Turn this into a step that produces |signatures| and |keys| from
-    |el|. It'll change a lot based on the spelling option we choose in
-    [[#name]], ranging from replicating the SRI parsing model to walking
-    around a bit to find keys that were placed elsewhere (headers, <{head}>,
-    etc. Assume we end up with those two variables, each of which contains
-    a list of decoded byte sequences.
+1.  Let |signatures| be the result of executing [$parse signature$] on |el|.
 
 2.  If |signatures| is [=list/empty=], return "`Valid`".
 
-3.  Let |inline content| be |el|'s [=child text content=].
+3.  Let |keys| be the result of executing [$parse keys$] on |el|.
 
-4.  [=list/For each=] |signature| in |signatures|:
+4.  Let |inline content| be |el|'s [=child text content=].
+
+5.  [=list/For each=] |signature| in |signatures|:
 
     1.  [=list/For each=] |key| in |keys|:
 
@@ -171,14 +216,13 @@ following algorithm returns "`Invalid`" given an [=/element=] |el|:
         2.  If verification succeeded, return "`Valid`". Otherwise [=continue=].
 
     Note: This means that the algorithm will return "`Valid`" if *any* asserted
-    signature matches *any* required key.
+    signature matches *any* specified key.
 
-5.  Return "`Invalid`".
+6.  Return "`Invalid`".
 
     Note: If no |keys| are specified, no signatures can be validated. We could
-    punt on this condition in step 2, but it feels reasonable to fail closed if
-    a signature was asserted but couldn't be validated.
-
+    punt on this condition after step 3, but it feels reasonable to fail closed
+    if a signature was asserted but couldn't be validated.
 
 </div>
 
@@ -187,6 +231,61 @@ Monkey-patching HTML {#monkey-patch-html}
 
 The following changes wire up both <{script}> and <{style}> elements to perform
 signature validation before being used on a page:
+
+### `<script>` Patches #### {#html-signature-script}
+
+The following additions to <{script}> are required:
+
+> <pre class="idl">
+>   partial interface HTMLScriptElement {
+>     [CEReactions] attribute DOMString signature;
+>   };
+> </pre>
+> 
+> <p>The <dfn element-attr for="script">signature</dfn> attribute represents a
+> set of signatures over the element's [=child text content=]. The
+> <{script/signature}> attribute must not be specified when the <{script/src}>
+> attribute is specified.
+> 
+> <p>The {{HTMLScriptElement/signature}} IDL attribute [=reflects=] the value
+> of the <{script/signature}> content attribute.
+
+We'll also remove the restriction against <{script/integrity}> attributes
+coexisting with <{script/src}> attributes:
+
+> The <{script/integrity}> attribute represents the [=integrity metadata=] for
+> requests which this element is responsible for. The value is text. <del>The
+> <{script/integrity}> attribute must not be specified when the <{script/src}>
+> attribute is not specified.</del>
+
+ISSUE: We could also reconsider the restrictions on using <{script/integrity}>
+on [=data blocks=] and [=import maps=]. Both could benefit from this kind of
+integrity check?
+
+
+### `<style>` Patches #### {#html-signature-style}
+
+The following additions to <{style}> are necessary:
+
+> <pre class="idl">
+>   partial interface HTMLStyleElement {
+>     [CEReactions] attribute DOMString integrity;
+>     [CEReactions] attribute DOMString signature;
+>   };
+> </pre>
+>
+> <p>The <dfn element-attr for="style">integrity</dfn> attribute represents
+> [=integrity metadata=] for the element. The value is text. [[SRI]].
+> 
+> <p>The <dfn element-attr for="style">signature</dfn> attribute represents a
+> set of signatures over the element's [=child text content=].
+>
+> <p>The {{HTMLStyleElement/integrity}} IDL attribute [=reflects=] the value
+> of the <{script/integrity}> content attribute.
+
+> <p>The {{HTMLStyleElement/signature}} IDL attribute [=reflects=] the value
+> of the <{script/signature}> content attribute.
+
 
 ### Script execution ### {#html-script}
 
@@ -251,73 +350,6 @@ whitespace. That means that `<script>alert(1);</script>` will have a different
 signature than `<script> alert(1);</script>` and `<script>alert(1); </script>`.
 
 
-`x-inlined-content-signature` is a terrible attribute name {#name}
-----------------------------------------------------------
-
-It is. We'll replace it with one that makes sense. Here are some spelling options:
-
-1.  We could embed public keys in `integrity` attributes, just as we do for
-    remote resources in [[SIGSRI]], and embed signatures via the as-yet-unused
-    option syntax that [[SRI]] defines for that attribute:
-
-    ```html
-        <script integrity="ed25519-[base64-encoded public key]?signature=[base64-encoded signature]">
-            /* Code goes here. */
-        </script>
-    ```
-    
-    Beyond aesthetics and legibility, the downside of this approach is that it
-    would not allow us to specify a key elsewhere: each script would embed both
-    key and signature, which is a bit verbose.
-    
-    On the other hand, it doesn't require any new attributes, and allows us to
-    tell a somewhat clear story about the impact of `integrity` on script
-    execution.
-    
-2.  We could embed public keys in `integrity` attributes, just as we do for
-    remote resources in [[SIGSRI]], and embed signatures in a new `signature`
-    attribute:
-
-    ```html
-        <script signature="ed25519-[base64-encoded signature]"
-                integrity="ed25519-[base64-encoded public key]">
-            /* Code goes here. */
-        </script>
-    ```
-
-    This has the upside of reusing an existing attribute, and not requiring us
-    to exercise the option syntax. `signature` is also quite clear in the
-    context, though it does invite some questions about the interaction between
-    these attributes for subresource fetches that we'd need to answer.
-    
-3.  We could create inline variants of `integrity` and/or `signature` that apply
-    only to inline blocks and explicitly not to subresource requests:
-
-    ```html
-        <script inline-signature="ed25519-[base64-encoded signature]"
-                inline-integrity="ed25519-[base64-encoded public key]">
-            /* Code goes here. */
-        </script>
-    ```
-
-    or:
-
-    ```html
-        <script inline-integrity="ed25519-[base64-encoded public key]?signature=[base64-encoded signature]">
-            /* Code goes here. */
-        </script>
-    ```
-
-4.  We could rename everything in some arbitrary way that appeals to someone.
-
-
-ISSUE(WICG/signature-based-sri#42): Consider this a placeholder while we work
-through the discussion in 
-[WICG/signature-based-sri#10](https://github.com/WICG/signature-based-sri/issues/10)
-and
-[WICG/signature-based-sri#42](https://github.com/WICG/signature-based-sri/issues/42).
-
-
 How does this compare to Signature-Based Integrity? {#implementation-signature-base}
 ---------------------------------------------------
 
@@ -353,7 +385,7 @@ consistent with existing protections like [[SRI]] and [[CSP]], giving developers
 a clear path towards more safely including their dependencies.
 
 Rather than allowing `'unsafe-inline'`, developers will have the option of
-restricting themselves to 
+restricting themselves to inline scripts signed by a specific key.
 
 
 Privacy Considerations {#privacy}

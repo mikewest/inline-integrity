@@ -4,9 +4,9 @@
   <title>Inline Integrity</title>
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
-  <meta content="Bikeshed version c67c745b1, updated Fri Jan 17 14:27:28 2025 -0800" name="generator">
+  <meta content="Bikeshed version b25686b9f, updated Fri Mar 14 14:15:20 2025 -0700" name="generator">
   <link href="https://mikewest.github.io/inline-integrity/" rel="canonical">
-  <meta content="3acbb0b69ef2cee260e75dff73588bce221c6741" name="revision">
+  <meta content="925064365e269a3fd16a16a2e6b39bab2506f897" name="revision">
   <meta content="dark light" name="color-scheme">
   <link href="https://www.w3.org/StyleSheets/TR/2021/dark.css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css">
 <style>/* Boilerplate: style-autolinks */
@@ -467,6 +467,11 @@ figcaption:not(.no-marker)::before {
     content: "☑ ";
 }
 </style>
+<style>/* Boilerplate: style-idl-highlighting */
+pre.idl.highlight {
+    background: var(--borderedblock-bg, var(--def-bg));
+}
+</style>
 <style>/* Boilerplate: style-issues */
 a[href].issue-return {
     float: right;
@@ -745,9 +750,8 @@ var[data-var-color="6"] { --var-vg: #FFBCF2; }
  <body class="h-entry">
   <input id="hidedel" style="display:none" type="checkbox">
   <div class="head">
-   <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Inline Integrity</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types/#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2025-01-24">24 January 2025</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types/#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2025-04-17">17 April 2025</time></p>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -798,16 +802,17 @@ but should fold into HTML (and potentially SRI).</p>
       <li>
        <a href="#monkey-patch-html"><span class="secno">2.2</span> <span class="content">Monkey-patching HTML</span></a>
        <ol class="toc">
-        <li><a href="#html-script"><span class="secno">2.2.1</span> <span class="content">Script execution</span></a>
-        <li><a href="#html-style"><span class="secno">2.2.2</span> <span class="content">Style application</span></a>
+        <li><a href="#html-signature-script"><span class="secno">2.2.1</span> <span class="content"><code>&lt;script></code> Patches #</span></a>
+        <li><a href="#html-signature-style"><span class="secno">2.2.2</span> <span class="content"><code>&lt;style></code> Patches #</span></a>
+        <li><a href="#html-script"><span class="secno">2.2.3</span> <span class="content">Script execution</span></a>
+        <li><a href="#html-style"><span class="secno">2.2.4</span> <span class="content">Style application</span></a>
        </ol>
      </ol>
     <li>
      <a href="#implementation"><span class="secno">3</span> <span class="content">Implementation Considerations</span></a>
      <ol class="toc">
       <li><a href="#implementation-message"><span class="secno">3.1</span> <span class="content">What is being signed?</span></a>
-      <li><a href="#name"><span class="secno">3.2</span> <span class="content"><code>x-inlined-content-signature</code> is a terrible attribute name</span></a>
-      <li><a href="#implementation-signature-base"><span class="secno">3.3</span> <span class="content">How does this compare to Signature-Based Integrity?</span></a>
+      <li><a href="#implementation-signature-base"><span class="secno">3.2</span> <span class="content">How does this compare to Signature-Based Integrity?</span></a>
      </ol>
     <li>
      <a href="#security"><span class="secno">4</span> <span class="content">Security Considerations</span></a>
@@ -836,6 +841,7 @@ but should fold into HTML (and potentially SRI).</p>
       <li><a href="#normative"><span class="secno"></span> <span class="content">Normative References</span></a>
       <li><a href="#informative"><span class="secno"></span> <span class="content">Informative References</span></a>
      </ol>
+    <li><a href="#idl-index"><span class="secno"></span> <span class="content">IDL Index</span></a>
     <li><a href="#issues-index"><span class="secno"></span> <span class="content">Issues Index</span></a>
    </ol>
   </nav>
@@ -853,17 +859,18 @@ asking users' agents to take responsibility for these additional requests.
 Rather than composing the page at runtime, they might choose to embed code more
 directly, copy/pasting snippets into inline <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script①">script</a></code> blocks, or relying upon
 layers of infrastructure to inline their dependencies through server-side
-includes (Fastly <a href="https://docs.rs/esi/latest/esi/">implements</a> a subset of <a data-link-type="biblio" href="#biblio-esi-lang" title="ESI Language Specification 1.0">[ESI-LANG]</a>, for example). Depending on
-the development team, these dependencies might not even be third-party in the
-traditional sense, but developed as internally-shared frameworks that are jammed
-together through internal infrastructure:</p>
+includes (Fastly <a href="https://docs.rs/esi/latest/esi/">implements</a> a subset of <a data-link-type="biblio" href="#biblio-esi-lang" title="ESI Language Specification 1.0">[ESI-LANG]</a>, for example). Depending on the development team, these dependencies
+might not even be third-party in the traditional sense, but developed as
+internally-shared frameworks that are jammed together through internal
+infrastructure:</p>
 <pre class="language-xml highlight"><c- d>&lt;!-- The main document: --></c->
 <c- f>&lt;esi:include</c-> <c- e>src=</c-><c- s>"https://widgets-r-us.example/widget.include"</c-> <c- f>/></c->
 </pre>
-<pre class="language-html highlight"><c- d>&lt;!-- https://widgets-r-us.example/widget.include --></c->
+<pre class="language-html highlight"><c- d>&lt;!-- https://widgets-r-us.example/widget.include is inlined below --></c->
 <c- p>&lt;</c-><c- f>script</c-><c- p>></c->
   <c- d>/* Code goes here. */</c->
 <c- p>&lt;/</c-><c- f>script</c-><c- p>></c->
+<c- d>&lt;!-- End of https://widgets-r-us.example/widget.include's content --></c->
 </pre>
    <p>These inlined blocks are a stumbling block for developers who wish to deploy
 strong protections against injection attacks, as architectural decisions might
@@ -879,47 +886,89 @@ validate inlined script’s signatures against those known-good keys. This
 provides a proof of provenance for the code in question, allowing developers
 to ensure the integrity of their supply chain in a dynamic fashion:</p>
 <pre class="language-html highlight"><c- d>&lt;!-- https://widgets-r-us.example/widget.include --></c->
-<c- p>&lt;</c-><c- f>script</c-> <c- e>x-inlined-content-signature</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded signature]"</c->
-        <c- e>x-inlined-content-key</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded public key]"</c-><c- p>></c->
+<c- p>&lt;</c-><c- f>script</c-> <c- e>signature</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded signature]"</c->
+        <c- e>integrity</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded public key]"</c-><c- p>></c->
   <c- d>/* Code goes here. */</c->
 <c- p>&lt;/</c-><c- f>script</c-><c- p>></c->
 </pre>
-   <p class="issue" id="issue-f430deba"><a class="self-link" href="#issue-f430deba"></a> These attributes have terrible placeholder names on purpose. See <a href="#name">§ 3.2 x-inlined-content-signature is a terrible attribute name</a> for some spelling options.</p>
    <div class="example" id="intro-example">
     <a class="self-link" href="#intro-example"></a> 
-    <p>Pages will assert both a signature and a key for a given <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script②">script</a></code> or <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element">style</a></code> element, either including both inline, or asserting a set of keys and assuming
-their applicability to elements that only include a signature. Here, we’ll use
-the test Ed25519 keys from <a data-link-type="biblio" href="#biblio-rfc9421" title="HTTP Message Signatures">[RFC9421]</a> to demonstrate:</p>
-<pre class="language-html highlight"><c- p>&lt;</c-><c- f>script</c-> <c- e>x-inlined-content-signature</c-><c- o>=</c-><c- s>"ed25519-hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg=="</c->
-        <c- e>x-inlined-content-key</c-><c- o>=</c-><c- s>"ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="</c-><c- p>></c->
+    <p>Pages will assert both a signature and a key for a given <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script②">script</a></code> or <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element">style</a></code> element. Here, we’ll use the test Ed25519 keys from <a data-link-type="biblio" href="#biblio-rfc9421" title="HTTP Message Signatures">[RFC9421]</a> to demonstrate:</p>
+<pre class="language-html highlight"><c- p>&lt;</c-><c- f>script</c-> <c- e>signature</c-><c- o>=</c-><c- s>"ed25519-hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg=="</c->
+        <c- e>integrity</c-><c- o>=</c-><c- s>"ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="</c-><c- p>></c->
   alert<c- p>(</c-><c- mf>1</c-><c- p>);</c->
 <c- p>&lt;/</c-><c- f>script</c-><c- p>></c->
-</pre>
-    <p>Or:</p>
-<pre class="language-html highlight"><c- p>&lt;</c-><c- f>meta</c-> <c- e>name</c-><c- o>=</c-><c- s>"x-inline-content-key"</c-> <c- e>content</c-><c- o>=</c-><c- s>"ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="</c-><c- p>></c->
-
-<c- p>&lt;</c-><c- f>script</c-> <c- e>x-inlined-content-signature</c-><c- o>=</c-><c- s>"ed25519-hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg=="</c->
-  <c- e>alert</c->(<c- e>1</c->);
-&lt;/<c- e>script</c-><c- p>></c->
 </pre>
     <p>Pages can restrict execution of script through reference to these keys:</p>
 <pre class="language-http highlight">Content-Security-Policy: script-src 'ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs='
 </pre>
-    <p>Yay!</p>
+    <p>|</p>
    </div>
    <h2 class="heading settled" data-level="2" id="framework"><span class="secno">2. </span><span class="content">Framework</span><a class="self-link" href="#framework"></a></h2>
    <h3 class="heading settled" data-level="2.1" id="validation"><span class="secno">2.1. </span><span class="content">Validation</span><a class="self-link" href="#validation"></a></h3>
-   <div class="algorithm" data-algorithm="has an invalid inline signature">
-    <p>An element <dfn class="dfn-paneled" data-dfn-for="element" data-dfn-type="dfn" data-noexport id="element-has-an-invalid-inline-signature">has an invalid inline signature</dfn> if the
-following algorithm returns "<code>Invalid</code>" given an <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-element" id="ref-for-concept-element">element</a> <var>el</var>:</p>
+   <div class="algorithm" data-algorithm="parse element signatures">
+    <p>To <dfn class="dfn-paneled" data-dfn-type="abstract-op" data-export id="abstract-opdef-parse-signatures">parse signatures</dfn> given an <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-element" id="ref-for-concept-element">element</a> <var>el</var>, execute
+the following steps, which return a <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list" id="ref-for-list">list</a> of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#byte-sequence" id="ref-for-byte-sequence">byte sequences</a>:</p>
     <ol>
      <li data-md>
-      <p class="issue" id="issue-4ceced75"><a class="self-link" href="#issue-4ceced75"></a> Turn this into a step that produces <var>signatures</var> and <var>keys</var> from <var>el</var>. It’ll change a lot based on the spelling option we choose in <a href="#name">§ 3.2 x-inlined-content-signature is a terrible attribute name</a>, ranging from replicating the SRI parsing model to walking
-around a bit to find keys that were placed elsewhere (headers, <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-head-element" id="ref-for-the-head-element">head</a></code>,
-etc. Assume we end up with those two variables, each of which contains
-a list of decoded byte sequences.</p>
+      <p>Let <var>result</var> be an empty <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list" id="ref-for-list①">list</a>.</p>
+     <li data-md>
+      <p>If <var>el</var> does not have a <code>signature</code> attribute, return <var>result</var>.</p>
+     <li data-md>
+      <p>For each <var>item</var> resulting from <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#split-on-ascii-whitespace" id="ref-for-split-on-ascii-whitespace">splitting</a> <var>el</var>’s <code>signature</code> attribute’s value on ASCII whitespace:</p>
+      <ol>
+       <li data-md>
+        <p>Let <var>algorithm-and-value</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#strictly-split" id="ref-for-strictly-split">splitting</a> <var>item</var> on U+002D (<code>-</code>).</p>
+       <li data-md>
+        <p>If <var>algorithm-and-value</var>[0] is not "<code>ed25519</code>", <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue">continue</a>.</p>
+       <li data-md>
+        <p>Let <var>decoded</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#forgiving-base64-decode" id="ref-for-forgiving-base64-decode">forgiving-base64 decoding</a> <var>algorithm-and-value</var>[1].</p>
+       <li data-md>
+        <p>If <var>decoded</var> is failure, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue①">continue</a>.</p>
+       <li data-md>
+        <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-append" id="ref-for-list-append">Append</a> <var>algorithm-and-value</var>[1] to <var>result</var>.</p>
+      </ol>
+     <li data-md>
+      <p>Return <var>result</var>.</p>
+    </ol>
+   </div>
+   <div class="algorithm" data-algorithm="parse element keys">
+    <p>To <dfn class="dfn-paneled" data-dfn-type="abstract-op" data-export id="abstract-opdef-parse-keys">parse keys</dfn> given an <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-element" id="ref-for-concept-element①">element</a> <var>el</var>, execute
+the following steps, which return a <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list" id="ref-for-list②">list</a> of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#byte-sequence" id="ref-for-byte-sequence①">byte sequences</a>:</p>
+    <ol>
+     <li data-md>
+      <p>Let <var>result</var> be an empty <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list" id="ref-for-list③">list</a>.</p>
+     <li data-md>
+      <p>If <var>el</var> does not have an <code>integrity</code> attribute, return <var>result</var>.</p>
+     <li data-md>
+      <p>For each <var>item</var> resulting from <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#split-on-ascii-whitespace" id="ref-for-split-on-ascii-whitespace①">splitting</a> <var>el</var>’s <code>integrity</code> attribute’s value on ASCII whitespace:</p>
+      <ol>
+       <li data-md>
+        <p>Let <var>algorithm-and-value</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#strictly-split" id="ref-for-strictly-split①">splitting</a> <var>item</var> on U+002D (<code>-</code>).</p>
+       <li data-md>
+        <p>If <var>algorithm-and-value</var>[0] is not "<code>ed25519</code>", <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue②">continue</a>.</p>
+       <li data-md>
+        <p>Let <var>decoded</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#forgiving-base64-decode" id="ref-for-forgiving-base64-decode①">forgiving-base64 decoding</a> <var>algorithm-and-value</var>[1].</p>
+       <li data-md>
+        <p>If <var>decoded</var> is failure, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue③">continue</a>.</p>
+       <li data-md>
+        <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-append" id="ref-for-list-append①">Append</a> <var>algorithm-and-value</var>[1] to <var>result</var>.</p>
+      </ol>
+     <li data-md>
+      <p>Return <var>result</var>.</p>
+    </ol>
+    <p class="note" role="note"><span class="marker">Note:</span> This is partially a simplification of SRI’s <a href="https://wicg.github.io/signature-based-sri/#parsing">parse metadata</a> algorithm. It might be reasonable to rely on that directly in the future.</p>
+   </div>
+   <div class="algorithm" data-algorithm="has an invalid inline signature">
+    <p>An element <dfn class="dfn-paneled" data-dfn-for="element" data-dfn-type="dfn" data-noexport id="element-has-an-invalid-inline-signature">has an invalid inline signature</dfn> if the
+following algorithm returns "<code>Invalid</code>" given an <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-element" id="ref-for-concept-element②">element</a> <var>el</var>:</p>
+    <ol>
+     <li data-md>
+      <p>Let <var>signatures</var> be the result of executing <a data-link-type="abstract-op">parse signature</a> on <var>el</var>.</p>
      <li data-md>
       <p>If <var>signatures</var> is <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-empty" id="ref-for-list-empty">empty</a>, return "<code>Valid</code>".</p>
+     <li data-md>
+      <p>Let <var>keys</var> be the result of executing <a data-link-type="abstract-op" href="#abstract-opdef-parse-keys" id="ref-for-abstract-opdef-parse-keys">parse keys</a> on <var>el</var>.</p>
      <li data-md>
       <p>Let <var>inline content</var> be <var>el</var>’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content">child text content</a>.</p>
      <li data-md>
@@ -934,27 +983,68 @@ a list of decoded byte sequences.</p>
 verification key material (<code>A</code>), <var>inline content</var> as the message
 (<code>M</code>), and <var>signature</var> as the signature to be verified.</p>
          <li data-md>
-          <p>If verification succeeded, return "<code>Valid</code>". Otherwise <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue">continue</a>.</p>
+          <p>If verification succeeded, return "<code>Valid</code>". Otherwise <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue④">continue</a>.</p>
         </ol>
       </ol>
       <p class="note" role="note"><span class="marker">Note:</span> This means that the algorithm will return "<code>Valid</code>" if <em>any</em> asserted
-signature matches <em>any</em> required key.</p>
+signature matches <em>any</em> specified key.</p>
      <li data-md>
       <p>Return "<code>Invalid</code>".</p>
       <p class="note" role="note"><span class="marker">Note:</span> If no <var>keys</var> are specified, no signatures can be validated. We could
-punt on this condition in step 2, but it feels reasonable to fail closed if
-a signature was asserted but couldn’t be validated.</p>
+punt on this condition after step 3, but it feels reasonable to fail closed
+if a signature was asserted but couldn’t be validated.</p>
     </ol>
    </div>
    <h3 class="heading settled" data-level="2.2" id="monkey-patch-html"><span class="secno">2.2. </span><span class="content">Monkey-patching HTML</span><a class="self-link" href="#monkey-patch-html"></a></h3>
    <p>The following changes wire up both <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script③">script</a></code> and <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element①">style</a></code> elements to perform
 signature validation before being used on a page:</p>
-   <h4 class="heading settled" data-level="2.2.1" id="html-script"><span class="secno">2.2.1. </span><span class="content">Script execution</span><a class="self-link" href="#html-script"></a></h4>
+   <h4 class="heading settled" data-level="2.2.1" id="html-signature-script"><span class="secno">2.2.1. </span><span class="content"><code>&lt;script></code> Patches #</span><a class="self-link" href="#html-signature-script"></a></h4>
+   <p>The following additions to <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script④">script</a></code> are required:</p>
+   <blockquote>
+<pre class="idl highlight def"><c- b>partial</c-> <c- b>interface</c-> <a class="idl-code" data-link-type="interface" href="https://html.spec.whatwg.org/multipage/scripting.html#htmlscriptelement" id="ref-for-htmlscriptelement"><c- g>HTMLScriptElement</c-></a> {
+  [<a class="idl-code" data-link-type="extended-attribute" href="https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions" id="ref-for-cereactions"><c- g>CEReactions</c-></a>] <c- b>attribute</c-> <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString" id="ref-for-idl-DOMString"><c- b>DOMString</c-></a> <dfn class="dfn-paneled idl-code" data-dfn-for="HTMLScriptElement" data-dfn-type="attribute" data-export data-type="DOMString" id="dom-htmlscriptelement-signature"><code><c- g>signature</c-></code></dfn>;
+};
+</pre>
+    <p>The <dfn class="dfn-paneled" data-dfn-for="script" data-dfn-type="element-attr" data-export id="element-attrdef-script-signature"><code>signature</code></dfn> attribute represents a
+set of signatures over the element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content①">child text content</a>. The <code><a data-link-type="element-sub" href="#element-attrdef-script-signature" id="ref-for-element-attrdef-script-signature">signature</a></code> attribute must not be specified when the <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src">src</a></code> attribute is specified. </p>
+    <p>The <code class="idl"><a data-link-type="idl" href="#dom-htmlscriptelement-signature" id="ref-for-dom-htmlscriptelement-signature">signature</a></code> IDL attribute <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#reflect" id="ref-for-reflect">reflects</a> the value
+of the <code><a data-link-type="element-sub" href="#element-attrdef-script-signature" id="ref-for-element-attrdef-script-signature①">signature</a></code> content attribute. </p>
+   </blockquote>
+   <p>We’ll also remove the restriction against <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity">integrity</a></code> attributes
+coexisting with <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src①">src</a></code> attributes:</p>
+   <blockquote>
+    <p>
+     The <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity①">integrity</a></code> attribute represents the <a data-link-type="dfn" href="https://fetch.spec.whatwg.org/#concept-request-integrity-metadata" id="ref-for-concept-request-integrity-metadata">integrity metadata</a> for
+requests which this element is responsible for. The value is text. 
+     <del>The <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity②">integrity</a></code> attribute must not be specified when the <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src②">src</a></code> attribute is not specified.</del>
+    </p>
+   </blockquote>
+   <p class="issue" id="issue-4eedf0b6"><a class="self-link" href="#issue-4eedf0b6"></a> We could also reconsider the restrictions on using <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity③">integrity</a></code> on <a data-link-type="dfn" href="https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks" id="ref-for-sec-data-blocks">data blocks</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/#import-map" id="ref-for-import-map">import maps</a>. Both could benefit from this kind of
+integrity check?</p>
+   <h4 class="heading settled" data-level="2.2.2" id="html-signature-style"><span class="secno">2.2.2. </span><span class="content"><code>&lt;style></code> Patches #</span><a class="self-link" href="#html-signature-style"></a></h4>
+   <p>The following additions to <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element②">style</a></code> are necessary:</p>
+   <blockquote>
+<pre class="idl highlight def"><c- b>partial</c-> <c- b>interface</c-> <a class="idl-code" data-link-type="interface" href="https://html.spec.whatwg.org/multipage/semantics.html#htmlstyleelement" id="ref-for-htmlstyleelement"><c- g>HTMLStyleElement</c-></a> {
+  [<a class="idl-code" data-link-type="extended-attribute" href="https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions" id="ref-for-cereactions①"><c- g>CEReactions</c-></a>] <c- b>attribute</c-> <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString" id="ref-for-idl-DOMString①"><c- b>DOMString</c-></a> <dfn class="dfn-paneled idl-code" data-dfn-for="HTMLStyleElement" data-dfn-type="attribute" data-export data-type="DOMString" id="dom-htmlstyleelement-integrity"><code><c- g>integrity</c-></code></dfn>;
+  [<a class="idl-code" data-link-type="extended-attribute" href="https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions" id="ref-for-cereactions②"><c- g>CEReactions</c-></a>] <c- b>attribute</c-> <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString" id="ref-for-idl-DOMString②"><c- b>DOMString</c-></a> <dfn class="dfn-paneled idl-code" data-dfn-for="HTMLStyleElement" data-dfn-type="attribute" data-export data-type="DOMString" id="dom-htmlstyleelement-signature"><code><c- g>signature</c-></code></dfn>;
+};
+</pre>
+    <p>The <dfn class="dfn-paneled" data-dfn-for="style" data-dfn-type="element-attr" data-export id="element-attrdef-style-integrity"><code>integrity</code></dfn> attribute represents <a data-link-type="dfn" href="https://fetch.spec.whatwg.org/#concept-request-integrity-metadata" id="ref-for-concept-request-integrity-metadata①">integrity metadata</a> for the element. The value is text. <a data-link-type="biblio" href="#biblio-sri" title="Subresource Integrity">[SRI]</a>. </p>
+    <p>The <dfn class="dfn-paneled" data-dfn-for="style" data-dfn-type="element-attr" data-export id="element-attrdef-style-signature"><code>signature</code></dfn> attribute represents a
+set of signatures over the element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content②">child text content</a>. </p>
+    <p>The <code class="idl"><a data-link-type="idl" href="#dom-htmlstyleelement-integrity" id="ref-for-dom-htmlstyleelement-integrity">integrity</a></code> IDL attribute <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#reflect" id="ref-for-reflect①">reflects</a> the value
+of the <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity④">integrity</a></code> content attribute. </p>
+   </blockquote>
+   <blockquote>
+    <p>The <code class="idl"><a data-link-type="idl" href="#dom-htmlstyleelement-signature" id="ref-for-dom-htmlstyleelement-signature">signature</a></code> IDL attribute <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#reflect" id="ref-for-reflect②">reflects</a> the value
+of the <code><a data-link-type="element-sub" href="#element-attrdef-script-signature" id="ref-for-element-attrdef-script-signature②">signature</a></code> content attribute. </p>
+   </blockquote>
+   <h4 class="heading settled" data-level="2.2.3" id="html-script"><span class="secno">2.2.3. </span><span class="content">Script execution</span><a class="self-link" href="#html-script"></a></h4>
    <div class="algorithm" data-algorithm="prepare the script element">
     <p>We’ll add a new validation step alongside the callout to CSP in step 19 of HTML’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/#prepare-the-script-element" id="ref-for-prepare-the-script-element">prepare the script element</a> algorithm as follows:</p>
     <ol start="19">
      <li>
-      <p> If <var>el</var> does not have a <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src">src</a></code> content attribute,
+      <p> If <var>el</var> does not have a <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src③">src</a></code> content attribute,
       then return if either of the following statements is true: </p>
       <ul>
        <li>
@@ -966,72 +1056,25 @@ signature validation before being used on a page:</p>
       </ul>
     </ol>
    </div>
-   <h4 class="heading settled" data-level="2.2.2" id="html-style"><span class="secno">2.2.2. </span><span class="content">Style application</span><a class="self-link" href="#html-style"></a></h4>
+   <h4 class="heading settled" data-level="2.2.4" id="html-style"><span class="secno">2.2.4. </span><span class="content">Style application</span><a class="self-link" href="#html-style"></a></h4>
    <div class="algorithm" data-algorithm="update a style block">
     <p>We’ll add a new validation step alongside the callout to CSP in step 5 of HTML’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/#update-a-style-block" id="ref-for-update-a-style-block">update a style block</a> algorithm as follows:</p>
     <ol start="5">
      <li>
-      <p>If the <a data-link-type="dfn" href="https://w3c.github.io/webappsec-csp/#should-block-inline" id="ref-for-should-block-inline①">Should element’s inline type behavior be blocked by Content Security Policy?</a> algorithm returns "<code>Blocked</code>" when given the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element②">style</a></code> element, "<code>style</code>",
-       and the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element③">style</a></code> element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content①">child text content</a>, then return.</p>
+      <p>If the <a data-link-type="dfn" href="https://w3c.github.io/webappsec-csp/#should-block-inline" id="ref-for-should-block-inline①">Should element’s inline type behavior be blocked by Content Security Policy?</a> algorithm returns "<code>Blocked</code>" when given the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element③">style</a></code> element, "<code>style</code>",
+       and the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element④">style</a></code> element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content③">child text content</a>, then return.</p>
      <li>
       <p>
-       <ins>If the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element④">style</a></code> element <a data-link-type="dfn" href="#element-has-an-invalid-inline-signature" id="ref-for-element-has-an-invalid-inline-signature①">has an invalid inline signature</a>, then return.</ins>
+       <ins>If the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element⑤">style</a></code> element <a data-link-type="dfn" href="#element-has-an-invalid-inline-signature" id="ref-for-element-has-an-invalid-inline-signature①">has an invalid inline signature</a>, then return.</ins>
       </p>
     </ol>
    </div>
    <h2 class="heading settled" data-level="3" id="implementation"><span class="secno">3. </span><span class="content">Implementation Considerations</span><a class="self-link" href="#implementation"></a></h2>
    <h3 class="heading settled" data-level="3.1" id="implementation-message"><span class="secno">3.1. </span><span class="content">What is being signed?</span><a class="self-link" href="#implementation-message"></a></h3>
-   <p>The signature is asserted over the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script④">script</a></code> or <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element⑤">style</a></code> element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content②">child text content</a>, which importantly includes both leading and trailing
+   <p>The signature is asserted over the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script⑤">script</a></code> or <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element⑥">style</a></code> element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content④">child text content</a>, which importantly includes both leading and trailing
 whitespace. That means that <code>&lt;script>alert(1);&lt;/script></code> will have a different
 signature than <code>&lt;script> alert(1);&lt;/script></code> and <code>&lt;script>alert(1); &lt;/script></code>.</p>
-   <h3 class="heading settled" data-level="3.2" id="name"><span class="secno">3.2. </span><span class="content"><code>x-inlined-content-signature</code> is a terrible attribute name</span><a class="self-link" href="#name"></a></h3>
-   <p>It is. We’ll replace it with one that makes sense. Here are some spelling options:</p>
-   <ol>
-    <li data-md>
-     <p>We could embed public keys in <code>integrity</code> attributes, just as we do for
-remote resources in <a data-link-type="biblio" href="#biblio-sigsri" title="Signature-Based Integrity">[SIGSRI]</a>, and embed signatures via the as-yet-unused
-option syntax that <a data-link-type="biblio" href="#biblio-sri" title="Subresource Integrity">[SRI]</a> defines for that attribute:</p>
-<pre class="language-html highlight"><c- p>&lt;</c-><c- f>script</c-> <c- e>integrity</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded public key]?signature=[base64-encoded signature]"</c-><c- p>></c->
-    <c- d>/* Code goes here. */</c->
-<c- p>&lt;/</c-><c- f>script</c-><c- p>></c->
-</pre>
-     <p>Beyond aesthetics and legibility, the downside of this approach is that it
-would not allow us to specify a key elsewhere: each script would embed both
-key and signature, which is a bit verbose.</p>
-     <p>On the other hand, it doesn’t require any new attributes, and allows us to
-tell a somewhat clear story about the impact of <code>integrity</code> on script
-execution.</p>
-    <li data-md>
-     <p>We could embed public keys in <code>integrity</code> attributes, just as we do for
-remote resources in <a data-link-type="biblio" href="#biblio-sigsri" title="Signature-Based Integrity">[SIGSRI]</a>, and embed signatures in a new <code>signature</code> attribute:</p>
-<pre class="language-html highlight"><c- p>&lt;</c-><c- f>script</c-> <c- e>signature</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded signature]"</c->
-        <c- e>integrity</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded public key]"</c-><c- p>></c->
-    <c- d>/* Code goes here. */</c->
-<c- p>&lt;/</c-><c- f>script</c-><c- p>></c->
-</pre>
-     <p>This has the upside of reusing an existing attribute, and not requiring us
-to exercise the option syntax. <code>signature</code> is also quite clear in the
-context, though it does invite some questions about the interaction between
-these attributes for subresource fetches that we’d need to answer.</p>
-    <li data-md>
-     <p>We could create inline variants of <code>integrity</code> and/or <code>signature</code> that apply
-only to inline blocks and explicitly not to subresource requests:</p>
-<pre class="language-html highlight"><c- p>&lt;</c-><c- f>script</c-> <c- e>inline-signature</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded signature]"</c->
-        <c- e>inline-integrity</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded public key]"</c-><c- p>></c->
-    <c- d>/* Code goes here. */</c->
-<c- p>&lt;/</c-><c- f>script</c-><c- p>></c->
-</pre>
-     <p>or:</p>
-<pre class="language-html highlight"><c- p>&lt;</c-><c- f>script</c-> <c- e>inline-integrity</c-><c- o>=</c-><c- s>"ed25519-[base64-encoded public key]?signature=[base64-encoded signature]"</c-><c- p>></c->
-    <c- d>/* Code goes here. */</c->
-<c- p>&lt;/</c-><c- f>script</c-><c- p>></c->
-</pre>
-    <li data-md>
-     <p>We could rename everything in some arbitrary way that appeals to someone.</p>
-   </ol>
-   <p class="issue" id="issue-bb89bdc3"><a class="self-link" href="#issue-bb89bdc3"></a> Consider this a placeholder while we work
-through the discussion in <a href="https://github.com/WICG/signature-based-sri/issues/10">WICG/signature-based-sri#10</a> and <a href="https://github.com/WICG/signature-based-sri/issues/42">WICG/signature-based-sri#42</a>. <a href="https://github.com/WICG/signature-based-sri/issues/42">[Issue #WICG/signature-based-sri#42]</a></p>
-   <h3 class="heading settled" data-level="3.3" id="implementation-signature-base"><span class="secno">3.3. </span><span class="content">How does this compare to Signature-Based Integrity?</span><a class="self-link" href="#implementation-signature-base"></a></h3>
+   <h3 class="heading settled" data-level="3.2" id="implementation-signature-base"><span class="secno">3.2. </span><span class="content">How does this compare to Signature-Based Integrity?</span><a class="self-link" href="#implementation-signature-base"></a></h3>
    <p>The <a href="https://wicg.github.io/signature-based-sri/">signature-based integrity</a> proposal relies upon HTTP Message Signatures <a data-link-type="biblio" href="#biblio-rfc9421" title="HTTP Message Signatures">[RFC9421]</a> to explain how
 signatures can be validated over resources requested from a remote server. As
 the request and response metadata plays an important role in how the resource
@@ -1048,11 +1091,11 @@ content seems worse in practically every way.</p>
    <h3 class="heading settled" data-level="4.1" id="security-csp"><span class="secno">4.1. </span><span class="content">Integration with CSP</span><a class="self-link" href="#security-csp"></a></h3>
    <p>Broadly, the mechanism described here aims to make it easier for developers to
 deploy protections against unintended injection attacks even while relying
-upon inlined <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script⑤">script</a></code> or <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element⑥">style</a></code> blocks. It aims to do so in a way
+upon inlined <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script⑥">script</a></code> or <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element⑦">style</a></code> blocks. It aims to do so in a way
 consistent with existing protections like <a data-link-type="biblio" href="#biblio-sri" title="Subresource Integrity">[SRI]</a> and <a data-link-type="biblio" href="#biblio-csp" title="Content Security Policy Level 3">[CSP]</a>, giving developers
 a clear path towards more safely including their dependencies.</p>
    <p>Rather than allowing <code>'unsafe-inline'</code>, developers will have the option of
-restricting themselves to</p>
+restricting themselves to inline scripts signed by a specific key.</p>
    <h2 class="heading settled" data-level="5" id="privacy"><span class="secno">5. </span><span class="content">Privacy Considerations</span><a class="self-link" href="#privacy"></a></h2>
    <h3 class="heading settled" data-level="5.1" id="privacy-content-blocking"><span class="secno">5.1. </span><span class="content">Implications for Content Blocking</span><a class="self-link" href="#privacy-content-blocking"></a></h3>
    <p>Developers inline script in many cases to improve user experience, but script is
@@ -1111,6 +1154,22 @@ of additional inspection.</p>
   <h3 class="no-num no-ref heading settled" id="index-defined-here"><span class="content">Terms defined by this specification</span><a class="self-link" href="#index-defined-here"></a></h3>
   <ul class="index">
    <li><a href="#element-has-an-invalid-inline-signature">has an invalid inline signature</a><span>, in § 2.1</span>
+   <li>
+    integrity
+    <ul>
+     <li><a href="#dom-htmlstyleelement-integrity">attribute for HTMLStyleElement</a><span>, in § 2.2.2</span>
+     <li><a href="#element-attrdef-style-integrity">element-attr for style</a><span>, in § 2.2.2</span>
+    </ul>
+   <li><a href="#abstract-opdef-parse-keys">parse keys</a><span>, in § 2.1</span>
+   <li><a href="#abstract-opdef-parse-signatures">parse signatures</a><span>, in § 2.1</span>
+   <li>
+    signature
+    <ul>
+     <li><a href="#dom-htmlscriptelement-signature">attribute for HTMLScriptElement</a><span>, in § 2.2.1</span>
+     <li><a href="#dom-htmlstyleelement-signature">attribute for HTMLStyleElement</a><span>, in § 2.2.2</span>
+     <li><a href="#element-attrdef-script-signature">element-attr for script</a><span>, in § 2.2.1</span>
+     <li><a href="#element-attrdef-style-signature">element-attr for style</a><span>, in § 2.2.2</span>
+    </ul>
   </ul>
   <h3 class="no-num no-ref heading settled" id="index-defined-elsewhere"><span class="content">Terms defined by reference</span><a class="self-link" href="#index-defined-elsewhere"></a></h3>
   <ul class="index">
@@ -1128,12 +1187,27 @@ of additional inspection.</p>
      <li><span class="dfn-paneled" id="27d9b7ea">element</span>
     </ul>
    <li>
+    <a data-link-type="biblio">[ECMASCRIPT]</a> defines the following terms:
+    <ul>
+     <li><span class="dfn-paneled" id="df732fab">Data Blocks</span>
+    </ul>
+   <li>
+    <a data-link-type="biblio">[FETCH]</a> defines the following terms:
+    <ul>
+     <li><span class="dfn-paneled" id="d79a826f">integrity metadata</span>
+    </ul>
+   <li>
     <a data-link-type="biblio">[HTML]</a> defines the following terms:
     <ul>
-     <li><span class="dfn-paneled" id="273ad187">head</span>
+     <li><span class="dfn-paneled" id="402ed79d">CEReactions</span>
+     <li><span class="dfn-paneled" id="ec4838d8">HTMLScriptElement</span>
+     <li><span class="dfn-paneled" id="aa8746c3">HTMLStyleElement</span>
+     <li><span class="dfn-paneled" id="33173c05">import map</span>
+     <li><span class="dfn-paneled" id="3dc5399b">integrity</span>
      <li><span class="dfn-paneled" id="6cfa013d">link</span>
      <li><span class="dfn-paneled" id="b1e9fc19">nonce</span>
      <li><span class="dfn-paneled" id="215d47ca">prepare the script element</span>
+     <li><span class="dfn-paneled" id="5ab7b520">reflect</span>
      <li><span class="dfn-paneled" id="0cf3964f">script</span>
      <li><span class="dfn-paneled" id="03431bcb">src</span>
      <li><span class="dfn-paneled" id="ba920583">style</span>
@@ -1142,9 +1216,20 @@ of additional inspection.</p>
    <li>
     <a data-link-type="biblio">[INFRA]</a> defines the following terms:
     <ul>
+     <li><span class="dfn-paneled" id="53275e46">append</span>
+     <li><span class="dfn-paneled" id="3de9e659">byte sequence</span>
      <li><span class="dfn-paneled" id="f937b7b6">continue</span>
      <li><span class="dfn-paneled" id="03afaf9c">empty</span>
      <li><span class="dfn-paneled" id="16d07e10">for each</span>
+     <li><span class="dfn-paneled" id="73e75483">forgiving-base64 decode</span>
+     <li><span class="dfn-paneled" id="649608b9">list</span>
+     <li><span class="dfn-paneled" id="a682cc44">split on ASCII whitespace</span>
+     <li><span class="dfn-paneled" id="e5fc5b88">strictly split</span>
+    </ul>
+   <li>
+    <a data-link-type="biblio">[WEBIDL]</a> defines the following terms:
+    <ul>
+     <li><span class="dfn-paneled" id="8855a9aa">DOMString</span>
     </ul>
   </ul>
   <h2 class="no-num no-ref heading settled" id="references"><span class="content">References</span><a class="self-link" href="#references"></a></h2>
@@ -1154,35 +1239,45 @@ of additional inspection.</p>
    <dd>Mike West; Antonio Sartori. <a href="https://w3c.github.io/webappsec-csp/"><cite>Content Security Policy Level 3</cite></a>. URL: <a href="https://w3c.github.io/webappsec-csp/">https://w3c.github.io/webappsec-csp/</a>
    <dt id="biblio-dom">[DOM]
    <dd>Anne van Kesteren. <a href="https://dom.spec.whatwg.org/"><cite>DOM Standard</cite></a>. Living Standard. URL: <a href="https://dom.spec.whatwg.org/">https://dom.spec.whatwg.org/</a>
+   <dt id="biblio-ecmascript">[ECMASCRIPT]
+   <dd><a href="https://tc39.es/ecma262/multipage/"><cite>ECMAScript Language Specification</cite></a>. URL: <a href="https://tc39.es/ecma262/multipage/">https://tc39.es/ecma262/multipage/</a>
+   <dt id="biblio-fetch">[FETCH]
+   <dd>Anne van Kesteren. <a href="https://fetch.spec.whatwg.org/"><cite>Fetch Standard</cite></a>. Living Standard. URL: <a href="https://fetch.spec.whatwg.org/">https://fetch.spec.whatwg.org/</a>
    <dt id="biblio-html">[HTML]
    <dd>Anne van Kesteren; et al. <a href="https://html.spec.whatwg.org/multipage/"><cite>HTML Standard</cite></a>. Living Standard. URL: <a href="https://html.spec.whatwg.org/multipage/">https://html.spec.whatwg.org/multipage/</a>
    <dt id="biblio-infra">[INFRA]
    <dd>Anne van Kesteren; Domenic Denicola. <a href="https://infra.spec.whatwg.org/"><cite>Infra Standard</cite></a>. Living Standard. URL: <a href="https://infra.spec.whatwg.org/">https://infra.spec.whatwg.org/</a>
    <dt id="biblio-rfc2119">[RFC2119]
    <dd>S. Bradner. <a href="https://datatracker.ietf.org/doc/html/rfc2119"><cite>Key words for use in RFCs to Indicate Requirement Levels</cite></a>. March 1997. Best Current Practice. URL: <a href="https://datatracker.ietf.org/doc/html/rfc2119">https://datatracker.ietf.org/doc/html/rfc2119</a>
+   <dt id="biblio-webidl">[WEBIDL]
+   <dd>Edgar Chen; Timothy Gu. <a href="https://webidl.spec.whatwg.org/"><cite>Web IDL Standard</cite></a>. Living Standard. URL: <a href="https://webidl.spec.whatwg.org/">https://webidl.spec.whatwg.org/</a>
   </dl>
   <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
    <dt id="biblio-esi-lang">[ESI-LANG]
-   <dd><a href="https://www.w3.org/TR/esi-lang"><cite>ESI Language Specification 1.0</cite></a>. 4 August 2001. NOTE. URL: <a href="https://www.w3.org/TR/esi-lang">https://www.w3.org/TR/esi-lang</a>
+   <dd>Mark Nottingham. <a href="https://www.w3.org/TR/esi-lang"><cite>ESI Language Specification 1.0</cite></a>. 4 August 2001. NOTE. URL: <a href="https://www.w3.org/TR/esi-lang">https://www.w3.org/TR/esi-lang</a>
    <dt id="biblio-rfc8032">[RFC8032]
    <dd>S. Josefsson; I. Liusvaara. <a href="https://www.rfc-editor.org/rfc/rfc8032"><cite>Edwards-Curve Digital Signature Algorithm (EdDSA)</cite></a>. January 2017. Informational. URL: <a href="https://www.rfc-editor.org/rfc/rfc8032">https://www.rfc-editor.org/rfc/rfc8032</a>
    <dt id="biblio-rfc9421">[RFC9421]
    <dd>A. Backman, Ed.; J. Richer, Ed.; M. Sporny. <a href="https://www.rfc-editor.org/rfc/rfc9421"><cite>HTTP Message Signatures</cite></a>. February 2024. Proposed Standard. URL: <a href="https://www.rfc-editor.org/rfc/rfc9421">https://www.rfc-editor.org/rfc/rfc9421</a>
-   <dt id="biblio-sigsri">[SIGSRI]
-   <dd>Mike West. <a href="https://wicg.github.io/signature-based-sri/"><cite>Signature-Based Integrity</cite></a>. cg-draft. URL: <a href="https://wicg.github.io/signature-based-sri/">https://wicg.github.io/signature-based-sri/</a>
    <dt id="biblio-sri">[SRI]
    <dd>Devdatta Akhawe; et al. <a href="https://w3c.github.io/webappsec-subresource-integrity/"><cite>Subresource Integrity</cite></a>. URL: <a href="https://w3c.github.io/webappsec-subresource-integrity/">https://w3c.github.io/webappsec-subresource-integrity/</a>
   </dl>
+  <h2 class="no-num no-ref heading settled" id="idl-index"><span class="content">IDL Index</span><a class="self-link" href="#idl-index"></a></h2>
+<pre class="idl highlight def"><c- b>partial</c-> <c- b>interface</c-> <a class="idl-code" data-link-type="interface" href="https://html.spec.whatwg.org/multipage/scripting.html#htmlscriptelement"><c- g>HTMLScriptElement</c-></a> {
+  [<a class="idl-code" data-link-type="extended-attribute" href="https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions"><c- g>CEReactions</c-></a>] <c- b>attribute</c-> <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString"><c- b>DOMString</c-></a> <a data-type="DOMString" href="#dom-htmlscriptelement-signature"><code><c- g>signature</c-></code></a>;
+};
+
+<c- b>partial</c-> <c- b>interface</c-> <a class="idl-code" data-link-type="interface" href="https://html.spec.whatwg.org/multipage/semantics.html#htmlstyleelement"><c- g>HTMLStyleElement</c-></a> {
+  [<a class="idl-code" data-link-type="extended-attribute" href="https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions"><c- g>CEReactions</c-></a>] <c- b>attribute</c-> <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString"><c- b>DOMString</c-></a> <a data-type="DOMString" href="#dom-htmlstyleelement-integrity"><code><c- g>integrity</c-></code></a>;
+  [<a class="idl-code" data-link-type="extended-attribute" href="https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions"><c- g>CEReactions</c-></a>] <c- b>attribute</c-> <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString"><c- b>DOMString</c-></a> <a data-type="DOMString" href="#dom-htmlstyleelement-signature"><code><c- g>signature</c-></code></a>;
+};
+
+</pre>
   <h2 class="no-num no-ref heading settled" id="issues-index"><span class="content">Issues Index</span><a class="self-link" href="#issues-index"></a></h2>
   <div style="counter-reset:issue">
-   <div class="issue"> These attributes have terrible placeholder names on purpose. See <a href="#name">§ 3.2 x-inlined-content-signature is a terrible attribute name</a> for some spelling options. <a class="issue-return" href="#issue-f430deba" title="Jump to section">↵</a></div>
-   <div class="issue"> Turn this into a step that produces <var>signatures</var> and <var>keys</var> from <var>el</var>. It’ll change a lot based on the spelling option we choose in <a href="#name">§ 3.2 x-inlined-content-signature is a terrible attribute name</a>, ranging from replicating the SRI parsing model to walking
-around a bit to find keys that were placed elsewhere (headers, <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-head-element">head</a></code>,
-etc. Assume we end up with those two variables, each of which contains
-a list of decoded byte sequences. <a class="issue-return" href="#issue-4ceced75" title="Jump to section">↵</a></div>
-   <div class="issue"> Consider this a placeholder while we work
-through the discussion in <a href="https://github.com/WICG/signature-based-sri/issues/10">WICG/signature-based-sri#10</a> and <a href="https://github.com/WICG/signature-based-sri/issues/42">WICG/signature-based-sri#42</a>. <a href="https://github.com/WICG/signature-based-sri/issues/42">[Issue #WICG/signature-based-sri#42]</a> <a class="issue-return" href="#issue-bb89bdc3" title="Jump to section">↵</a></div>
+   <div class="issue"> We could also reconsider the restrictions on using <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity">integrity</a></code> on <a data-link-type="dfn" href="https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks">data blocks</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/#import-map">import maps</a>. Both could benefit from this kind of
+integrity check? <a class="issue-return" href="#issue-4eedf0b6" title="Jump to section">↵</a></div>
   </div>
 <script>/* Boilerplate: script-dom-helper */
 "use strict";
@@ -1384,23 +1479,45 @@ function parseHTML(markup) {
 "use strict";
 {
 let dfnPanelData = {
-"03431bcb": {"dfnID":"03431bcb","dfnText":"src","external":true,"refSections":[{"refs":[{"id":"ref-for-attr-script-src"}],"title":"2.2.1. Script execution"}],"url":"https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src"},
+"03431bcb": {"dfnID":"03431bcb","dfnText":"src","external":true,"refSections":[{"refs":[{"id":"ref-for-attr-script-src"},{"id":"ref-for-attr-script-src\u2460"},{"id":"ref-for-attr-script-src\u2461"}],"title":"2.2.1. <script> Patches #"},{"refs":[{"id":"ref-for-attr-script-src\u2462"}],"title":"2.2.3. Script execution"}],"url":"https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src"},
 "03afaf9c": {"dfnID":"03afaf9c","dfnText":"empty","external":true,"refSections":[{"refs":[{"id":"ref-for-list-empty"}],"title":"2.1. Validation"}],"url":"https://infra.spec.whatwg.org/#list-empty"},
-"0cf3964f": {"dfnID":"0cf3964f","dfnText":"script","external":true,"refSections":[{"refs":[{"id":"ref-for-script"},{"id":"ref-for-script\u2460"},{"id":"ref-for-script\u2461"}],"title":"1. Introduction"},{"refs":[{"id":"ref-for-script\u2462"}],"title":"2.2. Monkey-patching HTML"},{"refs":[{"id":"ref-for-script\u2463"}],"title":"3.1. What is being signed?"},{"refs":[{"id":"ref-for-script\u2464"}],"title":"4.1. Integration with CSP"}],"url":"https://html.spec.whatwg.org/multipage/scripting.html#script"},
+"0cf3964f": {"dfnID":"0cf3964f","dfnText":"script","external":true,"refSections":[{"refs":[{"id":"ref-for-script"},{"id":"ref-for-script\u2460"},{"id":"ref-for-script\u2461"}],"title":"1. Introduction"},{"refs":[{"id":"ref-for-script\u2462"}],"title":"2.2. Monkey-patching HTML"},{"refs":[{"id":"ref-for-script\u2463"}],"title":"2.2.1. <script> Patches #"},{"refs":[{"id":"ref-for-script\u2464"}],"title":"3.1. What is being signed?"},{"refs":[{"id":"ref-for-script\u2465"}],"title":"4.1. Integration with CSP"}],"url":"https://html.spec.whatwg.org/multipage/scripting.html#script"},
 "16d07e10": {"dfnID":"16d07e10","dfnText":"for each","external":true,"refSections":[{"refs":[{"id":"ref-for-list-iterate"},{"id":"ref-for-list-iterate\u2460"}],"title":"2.1. Validation"}],"url":"https://infra.spec.whatwg.org/#list-iterate"},
-"215d47ca": {"dfnID":"215d47ca","dfnText":"prepare the script element","external":true,"refSections":[{"refs":[{"id":"ref-for-prepare-the-script-element"}],"title":"2.2.1. Script execution"}],"url":"https://html.spec.whatwg.org/#prepare-the-script-element"},
-"273ad187": {"dfnID":"273ad187","dfnText":"head","external":true,"refSections":[{"refs":[{"id":"ref-for-the-head-element"}],"title":"2.1. Validation"}],"url":"https://html.spec.whatwg.org/multipage/semantics.html#the-head-element"},
-"27d9b7ea": {"dfnID":"27d9b7ea","dfnText":"element","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-element"}],"title":"2.1. Validation"}],"url":"https://dom.spec.whatwg.org/#concept-element"},
+"215d47ca": {"dfnID":"215d47ca","dfnText":"prepare the script element","external":true,"refSections":[{"refs":[{"id":"ref-for-prepare-the-script-element"}],"title":"2.2.3. Script execution"}],"url":"https://html.spec.whatwg.org/#prepare-the-script-element"},
+"27d9b7ea": {"dfnID":"27d9b7ea","dfnText":"element","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-element"},{"id":"ref-for-concept-element\u2460"},{"id":"ref-for-concept-element\u2461"}],"title":"2.1. Validation"}],"url":"https://dom.spec.whatwg.org/#concept-element"},
+"33173c05": {"dfnID":"33173c05","dfnText":"import map","external":true,"refSections":[{"refs":[{"id":"ref-for-import-map"}],"title":"2.2.1. <script> Patches #"}],"url":"https://html.spec.whatwg.org/#import-map"},
+"3dc5399b": {"dfnID":"3dc5399b","dfnText":"integrity","external":true,"refSections":[{"refs":[{"id":"ref-for-attr-script-integrity"},{"id":"ref-for-attr-script-integrity\u2460"},{"id":"ref-for-attr-script-integrity\u2461"},{"id":"ref-for-attr-script-integrity\u2462"}],"title":"2.2.1. <script> Patches #"},{"refs":[{"id":"ref-for-attr-script-integrity\u2463"}],"title":"2.2.2. <style> Patches #"}],"url":"https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity"},
+"3de9e659": {"dfnID":"3de9e659","dfnText":"byte sequence","external":true,"refSections":[{"refs":[{"id":"ref-for-byte-sequence"},{"id":"ref-for-byte-sequence\u2460"}],"title":"2.1. Validation"}],"url":"https://infra.spec.whatwg.org/#byte-sequence"},
+"402ed79d": {"dfnID":"402ed79d","dfnText":"CEReactions","external":true,"refSections":[{"refs":[{"id":"ref-for-cereactions"}],"title":"2.2.1. <script> Patches #"},{"refs":[{"id":"ref-for-cereactions\u2460"},{"id":"ref-for-cereactions\u2461"}],"title":"2.2.2. <style> Patches #"}],"url":"https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions"},
 "50861711": {"dfnID":"50861711","dfnText":"Content Security Policy","external":true,"refSections":[{"refs":[{"id":"ref-for-content-security-policy"}],"title":"1. Introduction"}],"url":"https://w3c.github.io/webappsec-csp/#content-security-policy"},
-"631f76db": {"dfnID":"631f76db","dfnText":"child text content","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-child-text-content"}],"title":"2.1. Validation"},{"refs":[{"id":"ref-for-concept-child-text-content\u2460"}],"title":"2.2.2. Style application"},{"refs":[{"id":"ref-for-concept-child-text-content\u2461"}],"title":"3.1. What is being signed?"}],"url":"https://dom.spec.whatwg.org/#concept-child-text-content"},
+"53275e46": {"dfnID":"53275e46","dfnText":"append","external":true,"refSections":[{"refs":[{"id":"ref-for-list-append"},{"id":"ref-for-list-append\u2460"}],"title":"2.1. Validation"}],"url":"https://infra.spec.whatwg.org/#list-append"},
+"5ab7b520": {"dfnID":"5ab7b520","dfnText":"reflect","external":true,"refSections":[{"refs":[{"id":"ref-for-reflect"}],"title":"2.2.1. <script> Patches #"},{"refs":[{"id":"ref-for-reflect\u2460"},{"id":"ref-for-reflect\u2461"}],"title":"2.2.2. <style> Patches #"}],"url":"https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#reflect"},
+"631f76db": {"dfnID":"631f76db","dfnText":"child text content","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-child-text-content"}],"title":"2.1. Validation"},{"refs":[{"id":"ref-for-concept-child-text-content\u2460"}],"title":"2.2.1. <script> Patches #"},{"refs":[{"id":"ref-for-concept-child-text-content\u2461"}],"title":"2.2.2. <style> Patches #"},{"refs":[{"id":"ref-for-concept-child-text-content\u2462"}],"title":"2.2.4. Style application"},{"refs":[{"id":"ref-for-concept-child-text-content\u2463"}],"title":"3.1. What is being signed?"}],"url":"https://dom.spec.whatwg.org/#concept-child-text-content"},
+"649608b9": {"dfnID":"649608b9","dfnText":"list","external":true,"refSections":[{"refs":[{"id":"ref-for-list"},{"id":"ref-for-list\u2460"},{"id":"ref-for-list\u2461"},{"id":"ref-for-list\u2462"}],"title":"2.1. Validation"}],"url":"https://infra.spec.whatwg.org/#list"},
 "6cfa013d": {"dfnID":"6cfa013d","dfnText":"link","external":true,"refSections":[{"refs":[{"id":"ref-for-the-link-element"}],"title":"1. Introduction"}],"url":"https://html.spec.whatwg.org/multipage/semantics.html#the-link-element"},
+"73e75483": {"dfnID":"73e75483","dfnText":"forgiving-base64 decode","external":true,"refSections":[{"refs":[{"id":"ref-for-forgiving-base64-decode"},{"id":"ref-for-forgiving-base64-decode\u2460"}],"title":"2.1. Validation"}],"url":"https://infra.spec.whatwg.org/#forgiving-base64-decode"},
+"8855a9aa": {"dfnID":"8855a9aa","dfnText":"DOMString","external":true,"refSections":[{"refs":[{"id":"ref-for-idl-DOMString"}],"title":"2.2.1. <script> Patches #"},{"refs":[{"id":"ref-for-idl-DOMString\u2460"},{"id":"ref-for-idl-DOMString\u2461"}],"title":"2.2.2. <style> Patches #"}],"url":"https://webidl.spec.whatwg.org/#idl-DOMString"},
+"a682cc44": {"dfnID":"a682cc44","dfnText":"split on ASCII whitespace","external":true,"refSections":[{"refs":[{"id":"ref-for-split-on-ascii-whitespace"},{"id":"ref-for-split-on-ascii-whitespace\u2460"}],"title":"2.1. Validation"}],"url":"https://infra.spec.whatwg.org/#split-on-ascii-whitespace"},
+"aa8746c3": {"dfnID":"aa8746c3","dfnText":"HTMLStyleElement","external":true,"refSections":[{"refs":[{"id":"ref-for-htmlstyleelement"}],"title":"2.2.2. <style> Patches #"}],"url":"https://html.spec.whatwg.org/multipage/semantics.html#htmlstyleelement"},
+"abstract-opdef-parse-keys": {"dfnID":"abstract-opdef-parse-keys","dfnText":"parse keys","external":false,"refSections":[{"refs":[{"id":"ref-for-abstract-opdef-parse-keys"}],"title":"2.1. Validation"}],"url":"#abstract-opdef-parse-keys"},
+"abstract-opdef-parse-signatures": {"dfnID":"abstract-opdef-parse-signatures","dfnText":"parse signatures","external":false,"refSections":[],"url":"#abstract-opdef-parse-signatures"},
 "b1e9fc19": {"dfnID":"b1e9fc19","dfnText":"nonce","external":true,"refSections":[{"refs":[{"id":"ref-for-attr-nonce"}],"title":"1. Introduction"}],"url":"https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-nonce"},
 "b7c21a86": {"dfnID":"b7c21a86","dfnText":"Content-Security-Policy","external":true,"refSections":[{"refs":[{"id":"ref-for-header-content-security-policy"}],"title":"1. Introduction"}],"url":"https://w3c.github.io/webappsec-csp/#header-content-security-policy"},
-"ba920583": {"dfnID":"ba920583","dfnText":"style","external":true,"refSections":[{"refs":[{"id":"ref-for-the-style-element"}],"title":"1. Introduction"},{"refs":[{"id":"ref-for-the-style-element\u2460"}],"title":"2.2. Monkey-patching HTML"},{"refs":[{"id":"ref-for-the-style-element\u2461"},{"id":"ref-for-the-style-element\u2462"},{"id":"ref-for-the-style-element\u2463"}],"title":"2.2.2. Style application"},{"refs":[{"id":"ref-for-the-style-element\u2464"}],"title":"3.1. What is being signed?"},{"refs":[{"id":"ref-for-the-style-element\u2465"}],"title":"4.1. Integration with CSP"}],"url":"https://html.spec.whatwg.org/multipage/semantics.html#the-style-element"},
-"c36080a3": {"dfnID":"c36080a3","dfnText":"Should element's inline type behavior be blocked by Content Security Policy?","external":true,"refSections":[{"refs":[{"id":"ref-for-should-block-inline"}],"title":"2.2.1. Script execution"},{"refs":[{"id":"ref-for-should-block-inline\u2460"}],"title":"2.2.2. Style application"}],"url":"https://w3c.github.io/webappsec-csp/#should-block-inline"},
-"c91ed7c5": {"dfnID":"c91ed7c5","dfnText":"update a style block","external":true,"refSections":[{"refs":[{"id":"ref-for-update-a-style-block"}],"title":"2.2.2. Style application"}],"url":"https://html.spec.whatwg.org/#update-a-style-block"},
-"element-has-an-invalid-inline-signature": {"dfnID":"element-has-an-invalid-inline-signature","dfnText":"has an invalid inline signature","external":false,"refSections":[{"refs":[{"id":"ref-for-element-has-an-invalid-inline-signature"}],"title":"2.2.1. Script execution"},{"refs":[{"id":"ref-for-element-has-an-invalid-inline-signature\u2460"}],"title":"2.2.2. Style application"}],"url":"#element-has-an-invalid-inline-signature"},
-"f937b7b6": {"dfnID":"f937b7b6","dfnText":"continue","external":true,"refSections":[{"refs":[{"id":"ref-for-iteration-continue"}],"title":"2.1. Validation"}],"url":"https://infra.spec.whatwg.org/#iteration-continue"},
+"ba920583": {"dfnID":"ba920583","dfnText":"style","external":true,"refSections":[{"refs":[{"id":"ref-for-the-style-element"}],"title":"1. Introduction"},{"refs":[{"id":"ref-for-the-style-element\u2460"}],"title":"2.2. Monkey-patching HTML"},{"refs":[{"id":"ref-for-the-style-element\u2461"}],"title":"2.2.2. <style> Patches #"},{"refs":[{"id":"ref-for-the-style-element\u2462"},{"id":"ref-for-the-style-element\u2463"},{"id":"ref-for-the-style-element\u2464"}],"title":"2.2.4. Style application"},{"refs":[{"id":"ref-for-the-style-element\u2465"}],"title":"3.1. What is being signed?"},{"refs":[{"id":"ref-for-the-style-element\u2466"}],"title":"4.1. Integration with CSP"}],"url":"https://html.spec.whatwg.org/multipage/semantics.html#the-style-element"},
+"c36080a3": {"dfnID":"c36080a3","dfnText":"Should element's inline type behavior be blocked by Content Security Policy?","external":true,"refSections":[{"refs":[{"id":"ref-for-should-block-inline"}],"title":"2.2.3. Script execution"},{"refs":[{"id":"ref-for-should-block-inline\u2460"}],"title":"2.2.4. Style application"}],"url":"https://w3c.github.io/webappsec-csp/#should-block-inline"},
+"c91ed7c5": {"dfnID":"c91ed7c5","dfnText":"update a style block","external":true,"refSections":[{"refs":[{"id":"ref-for-update-a-style-block"}],"title":"2.2.4. Style application"}],"url":"https://html.spec.whatwg.org/#update-a-style-block"},
+"d79a826f": {"dfnID":"d79a826f","dfnText":"integrity metadata","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-request-integrity-metadata"}],"title":"2.2.1. <script> Patches #"},{"refs":[{"id":"ref-for-concept-request-integrity-metadata\u2460"}],"title":"2.2.2. <style> Patches #"}],"url":"https://fetch.spec.whatwg.org/#concept-request-integrity-metadata"},
+"df732fab": {"dfnID":"df732fab","dfnText":"Data Blocks","external":true,"refSections":[{"refs":[{"id":"ref-for-sec-data-blocks"}],"title":"2.2.1. <script> Patches #"}],"url":"https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks"},
+"dom-htmlscriptelement-signature": {"dfnID":"dom-htmlscriptelement-signature","dfnText":"signature","external":false,"refSections":[{"refs":[{"id":"ref-for-dom-htmlscriptelement-signature"}],"title":"2.2.1. <script> Patches #"}],"url":"#dom-htmlscriptelement-signature"},
+"dom-htmlstyleelement-integrity": {"dfnID":"dom-htmlstyleelement-integrity","dfnText":"integrity","external":false,"refSections":[{"refs":[{"id":"ref-for-dom-htmlstyleelement-integrity"}],"title":"2.2.2. <style> Patches #"}],"url":"#dom-htmlstyleelement-integrity"},
+"dom-htmlstyleelement-signature": {"dfnID":"dom-htmlstyleelement-signature","dfnText":"signature","external":false,"refSections":[{"refs":[{"id":"ref-for-dom-htmlstyleelement-signature"}],"title":"2.2.2. <style> Patches #"}],"url":"#dom-htmlstyleelement-signature"},
+"e5fc5b88": {"dfnID":"e5fc5b88","dfnText":"strictly split","external":true,"refSections":[{"refs":[{"id":"ref-for-strictly-split"},{"id":"ref-for-strictly-split\u2460"}],"title":"2.1. Validation"}],"url":"https://infra.spec.whatwg.org/#strictly-split"},
+"ec4838d8": {"dfnID":"ec4838d8","dfnText":"HTMLScriptElement","external":true,"refSections":[{"refs":[{"id":"ref-for-htmlscriptelement"}],"title":"2.2.1. <script> Patches #"}],"url":"https://html.spec.whatwg.org/multipage/scripting.html#htmlscriptelement"},
+"element-attrdef-script-signature": {"dfnID":"element-attrdef-script-signature","dfnText":"signature","external":false,"refSections":[{"refs":[{"id":"ref-for-element-attrdef-script-signature"},{"id":"ref-for-element-attrdef-script-signature\u2460"}],"title":"2.2.1. <script> Patches #"},{"refs":[{"id":"ref-for-element-attrdef-script-signature\u2461"}],"title":"2.2.2. <style> Patches #"}],"url":"#element-attrdef-script-signature"},
+"element-attrdef-style-integrity": {"dfnID":"element-attrdef-style-integrity","dfnText":"integrity","external":false,"refSections":[],"url":"#element-attrdef-style-integrity"},
+"element-attrdef-style-signature": {"dfnID":"element-attrdef-style-signature","dfnText":"signature","external":false,"refSections":[],"url":"#element-attrdef-style-signature"},
+"element-has-an-invalid-inline-signature": {"dfnID":"element-has-an-invalid-inline-signature","dfnText":"has an invalid inline signature","external":false,"refSections":[{"refs":[{"id":"ref-for-element-has-an-invalid-inline-signature"}],"title":"2.2.3. Script execution"},{"refs":[{"id":"ref-for-element-has-an-invalid-inline-signature\u2460"}],"title":"2.2.4. Style application"}],"url":"#element-has-an-invalid-inline-signature"},
+"f937b7b6": {"dfnID":"f937b7b6","dfnText":"continue","external":true,"refSections":[{"refs":[{"id":"ref-for-iteration-continue"},{"id":"ref-for-iteration-continue\u2460"},{"id":"ref-for-iteration-continue\u2461"},{"id":"ref-for-iteration-continue\u2462"},{"id":"ref-for-iteration-continue\u2463"}],"title":"2.1. Validation"}],"url":"https://infra.spec.whatwg.org/#iteration-continue"},
 };
 
 document.addEventListener("DOMContentLoaded", ()=>{
@@ -1789,23 +1906,42 @@ function genLinkingSyntaxes(dfn) {
 "use strict";
 {
 let refsData = {
+"#abstract-opdef-parse-keys": {"displayText":"parse keys","export":true,"for_":[],"level":"","normative":true,"shortname":"inline-integrity","spec":"inline-integrity","status":"local","text":"parse keys","type":"abstract-op","url":"#abstract-opdef-parse-keys"},
+"#dom-htmlscriptelement-signature": {"displayText":"signature","export":true,"for_":["HTMLScriptElement"],"level":"","normative":true,"shortname":"inline-integrity","spec":"inline-integrity","status":"local","text":"signature","type":"attribute","url":"#dom-htmlscriptelement-signature"},
+"#dom-htmlstyleelement-integrity": {"displayText":"integrity","export":true,"for_":["HTMLStyleElement"],"level":"","normative":true,"shortname":"inline-integrity","spec":"inline-integrity","status":"local","text":"integrity","type":"attribute","url":"#dom-htmlstyleelement-integrity"},
+"#dom-htmlstyleelement-signature": {"displayText":"signature","export":true,"for_":["HTMLStyleElement"],"level":"","normative":true,"shortname":"inline-integrity","spec":"inline-integrity","status":"local","text":"signature","type":"attribute","url":"#dom-htmlstyleelement-signature"},
+"#element-attrdef-script-signature": {"displayText":"signature","export":true,"for_":["script"],"level":"","normative":true,"shortname":"inline-integrity","spec":"inline-integrity","status":"local","text":"signature","type":"element-attr","url":"#element-attrdef-script-signature"},
 "#element-has-an-invalid-inline-signature": {"displayText":"has an invalid inline signature","export":true,"for_":["element"],"level":"","normative":true,"shortname":"inline-integrity","spec":"inline-integrity","status":"local","text":"has an invalid inline signature","type":"dfn","url":"#element-has-an-invalid-inline-signature"},
 "https://dom.spec.whatwg.org/#concept-child-text-content": {"displayText":"child text content","export":true,"for_":[],"level":"1","normative":true,"shortname":"dom","spec":"dom","status":"current","text":"child text content","type":"dfn","url":"https://dom.spec.whatwg.org/#concept-child-text-content"},
 "https://dom.spec.whatwg.org/#concept-element": {"displayText":"element","export":true,"for_":[],"level":"1","normative":true,"shortname":"dom","spec":"dom","status":"current","text":"element","type":"dfn","url":"https://dom.spec.whatwg.org/#concept-element"},
+"https://fetch.spec.whatwg.org/#concept-request-integrity-metadata": {"displayText":"integrity metadata","export":true,"for_":["request"],"level":"1","normative":true,"shortname":"fetch","spec":"fetch","status":"current","text":"integrity metadata","type":"dfn","url":"https://fetch.spec.whatwg.org/#concept-request-integrity-metadata"},
+"https://html.spec.whatwg.org/#import-map": {"displayText":"import map","export":true,"for_":[],"level":"","normative":true,"shortname":"html","spec":"html","status":"anchor-block","text":"import map","type":"dfn","url":"https://html.spec.whatwg.org/#import-map"},
 "https://html.spec.whatwg.org/#prepare-the-script-element": {"displayText":"prepare the script element","export":true,"for_":[],"level":"","normative":true,"shortname":"html","spec":"html","status":"anchor-block","text":"prepare the script element","type":"dfn","url":"https://html.spec.whatwg.org/#prepare-the-script-element"},
 "https://html.spec.whatwg.org/#update-a-style-block": {"displayText":"update a style block","export":true,"for_":[],"level":"","normative":true,"shortname":"html","spec":"html","status":"anchor-block","text":"update a style block","type":"dfn","url":"https://html.spec.whatwg.org/#update-a-style-block"},
+"https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#reflect": {"displayText":"reflect","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"reflect","type":"dfn","url":"https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#reflect"},
+"https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions": {"displayText":"CEReactions","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"CEReactions","type":"extended-attribute","url":"https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions"},
+"https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity": {"displayText":"integrity","export":true,"for_":["script"],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"integrity","type":"element-attr","url":"https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity"},
 "https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src": {"displayText":"src","export":true,"for_":["script"],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"src","type":"element-attr","url":"https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src"},
+"https://html.spec.whatwg.org/multipage/scripting.html#htmlscriptelement": {"displayText":"HTMLScriptElement","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"HTMLScriptElement","type":"interface","url":"https://html.spec.whatwg.org/multipage/scripting.html#htmlscriptelement"},
 "https://html.spec.whatwg.org/multipage/scripting.html#script": {"displayText":"script","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"script","type":"element","url":"https://html.spec.whatwg.org/multipage/scripting.html#script"},
-"https://html.spec.whatwg.org/multipage/semantics.html#the-head-element": {"displayText":"head","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"head","type":"element","url":"https://html.spec.whatwg.org/multipage/semantics.html#the-head-element"},
+"https://html.spec.whatwg.org/multipage/semantics.html#htmlstyleelement": {"displayText":"HTMLStyleElement","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"HTMLStyleElement","type":"interface","url":"https://html.spec.whatwg.org/multipage/semantics.html#htmlstyleelement"},
 "https://html.spec.whatwg.org/multipage/semantics.html#the-link-element": {"displayText":"link","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"link","type":"element","url":"https://html.spec.whatwg.org/multipage/semantics.html#the-link-element"},
 "https://html.spec.whatwg.org/multipage/semantics.html#the-style-element": {"displayText":"style","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"style","type":"element","url":"https://html.spec.whatwg.org/multipage/semantics.html#the-style-element"},
 "https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-nonce": {"displayText":"nonce","export":true,"for_":["htmlsvg-global"],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"nonce","type":"element-attr","url":"https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-nonce"},
+"https://infra.spec.whatwg.org/#byte-sequence": {"displayText":"byte sequence","export":true,"for_":[],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"byte sequence","type":"dfn","url":"https://infra.spec.whatwg.org/#byte-sequence"},
+"https://infra.spec.whatwg.org/#forgiving-base64-decode": {"displayText":"forgiving-base64 decode","export":true,"for_":[],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"forgiving-base64 decode","type":"dfn","url":"https://infra.spec.whatwg.org/#forgiving-base64-decode"},
 "https://infra.spec.whatwg.org/#iteration-continue": {"displayText":"continue","export":true,"for_":["iteration"],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"continue","type":"dfn","url":"https://infra.spec.whatwg.org/#iteration-continue"},
+"https://infra.spec.whatwg.org/#list": {"displayText":"list","export":true,"for_":[],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"list","type":"dfn","url":"https://infra.spec.whatwg.org/#list"},
+"https://infra.spec.whatwg.org/#list-append": {"displayText":"append","export":true,"for_":["list"],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"append","type":"dfn","url":"https://infra.spec.whatwg.org/#list-append"},
 "https://infra.spec.whatwg.org/#list-empty": {"displayText":"empty","export":true,"for_":["list","stack","queue","set"],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"empty","type":"dfn","url":"https://infra.spec.whatwg.org/#list-empty"},
 "https://infra.spec.whatwg.org/#list-iterate": {"displayText":"for each","export":true,"for_":["list","set"],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"for each","type":"dfn","url":"https://infra.spec.whatwg.org/#list-iterate"},
+"https://infra.spec.whatwg.org/#split-on-ascii-whitespace": {"displayText":"split on ASCII whitespace","export":true,"for_":[],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"split on ascii whitespace","type":"dfn","url":"https://infra.spec.whatwg.org/#split-on-ascii-whitespace"},
+"https://infra.spec.whatwg.org/#strictly-split": {"displayText":"strictly split","export":true,"for_":[],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"strictly split","type":"dfn","url":"https://infra.spec.whatwg.org/#strictly-split"},
+"https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks": {"displayText":"Data Blocks","export":true,"for_":["ECMAScript"],"level":"1","normative":true,"shortname":"ecmascript","spec":"ecmascript","status":"current","text":"data blocks","type":"dfn","url":"https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks"},
 "https://w3c.github.io/webappsec-csp/#content-security-policy": {"displayText":"Content Security Policy","export":true,"for_":[],"level":"3","normative":true,"shortname":"csp","spec":"csp3","status":"current","text":"content security policy","type":"dfn","url":"https://w3c.github.io/webappsec-csp/#content-security-policy"},
 "https://w3c.github.io/webappsec-csp/#header-content-security-policy": {"displayText":"Content-Security-Policy","export":true,"for_":[],"level":"3","normative":true,"shortname":"csp","spec":"csp3","status":"current","text":"content-security-policy","type":"http-header","url":"https://w3c.github.io/webappsec-csp/#header-content-security-policy"},
 "https://w3c.github.io/webappsec-csp/#should-block-inline": {"displayText":"Should element's inline type behavior be blocked by Content Security Policy?","export":true,"for_":[],"level":"3","normative":true,"shortname":"csp","spec":"csp3","status":"current","text":"should element's inline type behavior be blocked by content security policy?","type":"dfn","url":"https://w3c.github.io/webappsec-csp/#should-block-inline"},
+"https://webidl.spec.whatwg.org/#idl-DOMString": {"displayText":"DOMString","export":true,"for_":[],"level":"1","normative":true,"shortname":"webidl","spec":"webidl","status":"current","text":"DOMString","type":"interface","url":"https://webidl.spec.whatwg.org/#idl-DOMString"},
 };
 
 function mkRefHint(link, ref) {
@@ -1887,7 +2023,12 @@ function hideRefHint(refHint) {
 function showRefHint(link) {
     if(link.classList.contains("dfn-link")) return;
     const url = link.getAttribute("href");
-    const ref = refsData[url];
+    const refHintKey = link.getAttribute("data-refhint-key");
+    let key = url;
+    if(refHintKey) {
+        key = refHintKey + "_" + url;
+    }
+    const ref = refsData[key];
     if(!ref) return;
 
     hideAllRefHints(); // Only display one at this time.

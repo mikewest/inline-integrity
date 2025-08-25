@@ -4,9 +4,9 @@
   <title>Inline Integrity</title>
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
-  <meta content="Bikeshed version b25686b9f, updated Fri Mar 14 14:15:20 2025 -0700" name="generator">
+  <meta content="Bikeshed version 3f621ba99, updated Mon Jul 28 15:38:36 2025 -0700" name="generator">
   <link href="https://mikewest.github.io/inline-integrity/" rel="canonical">
-  <meta content="925064365e269a3fd16a16a2e6b39bab2506f897" name="revision">
+  <meta content="1e72bd23152b16b87138f43651ecb34bb6f070c4" name="revision">
   <meta content="dark light" name="color-scheme">
   <link href="https://www.w3.org/StyleSheets/TR/2021/dark.css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css">
 <style>/* Boilerplate: style-autolinks */
@@ -751,7 +751,8 @@ var[data-var-color="6"] { --var-vg: #FFBCF2; }
   <input id="hidedel" style="display:none" type="checkbox">
   <div class="head">
    <h1 class="p-name no-ref" id="title">Inline Integrity</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types/#CG-DRAFT">Draft Community Group Report</a>, <time class="dt-updated" datetime="2025-04-17">17 April 2025</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types/#CG-DRAFT">Draft Community Group Report</a>,
+    <time class="dt-updated" datetime="2025-08-25">25 August 2025</time></p>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -768,7 +769,8 @@ var[data-var-color="6"] { --var-vg: #FFBCF2; }
    </div>
    <div data-fill-with="warning"></div>
    <p class="copyright" data-fill-with="copyright"><a href="https://www.w3.org/policies/#copyright">Copyright</a> © 2025 the Contributors to the Inline Integrity Specification, published by the <a href="https://www.w3.org/community/wicg/">Web Platform Incubator Community Group</a> under the <a href="https://www.w3.org/community/about/agreements/cla/">W3C Community Contributor License Agreement (CLA)</a>.
-A human-readable <a href="http://www.w3.org/community/about/agreements/cla-deed/">summary</a> is available. </p>
+A human-readable <a href="http://www.w3.org/community/about/agreements/cla-deed/">summary</a> is available.
+</p>
    <hr title="Separator for header">
   </div>
   <div class="p-summary" data-fill-with="abstract">
@@ -782,12 +784,17 @@ but should fold into HTML (and potentially SRI).</p>
   <div data-fill-with="at-risk"></div>
   <h2 class="no-num no-toc no-ref heading settled" id="status"><span class="content">Status of this document</span></h2>
   <div data-fill-with="status">
-   <p> This specification was published by the <a href="https://www.w3.org/community/wicg/">Web Platform Incubator Community Group</a>.
+   <p>
+  This specification was published by the <a href="https://www.w3.org/community/wicg/">Web Platform Incubator Community Group</a>.
   It is not a W3C Standard nor is it on the W3C Standards Track.
 
-  Please note that under the <a href="https://www.w3.org/community/about/agreements/cla/">W3C Community Contributor License Agreement (CLA)</a> there is a limited opt-out and other conditions apply.
+  Please note that under the
+  <a href="https://www.w3.org/community/about/agreements/cla/">W3C Community Contributor License Agreement (CLA)</a>
+  there is a limited opt-out and other conditions apply.
 
-  Learn more about <a href="http://www.w3.org/community/">W3C Community and Business Groups</a>. </p>
+  Learn more about
+  <a href="http://www.w3.org/community/">W3C Community and Business Groups</a>.
+</p>
    <p></p>
   </div>
   <div data-fill-with="at-risk"></div>
@@ -849,7 +856,8 @@ but should fold into HTML (and potentially SRI).</p>
    <h2 class="heading settled" data-level="1" id="intro"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#intro"></a></h2>
    <p>Websites are well-understood to be compositions of resources from a variety of
 servers, woven together in one origin’s context to satisfy a developer’s goals.
-These resources are generally requested through elements like <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script">script</a></code> and <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-link-element" id="ref-for-the-link-element">link</a></code>, instructing user agents to make explicit requests to other servers
+These resources are generally requested through elements like <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script">script</a></code> and
+<code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-link-element" id="ref-for-the-link-element">link</a></code>, instructing user agents to make explicit requests to other servers
 on the page’s behalf, and to include those resources as part of the page’s
 construction:</p>
 <pre class="language-html highlight"><c- p>&lt;</c-><c- f>script</c-> <c- e>src</c-><c- o>=</c-><c- s>"https://widgets-r-us.example/widget.js"</c-><c- p>>&lt;/</c-><c- f>script</c-><c- p>></c->
@@ -859,7 +867,8 @@ asking users' agents to take responsibility for these additional requests.
 Rather than composing the page at runtime, they might choose to embed code more
 directly, copy/pasting snippets into inline <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script①">script</a></code> blocks, or relying upon
 layers of infrastructure to inline their dependencies through server-side
-includes (Fastly <a href="https://docs.rs/esi/latest/esi/">implements</a> a subset of <a data-link-type="biblio" href="#biblio-esi-lang" title="ESI Language Specification 1.0">[ESI-LANG]</a>, for example). Depending on the development team, these dependencies
+includes (Fastly <a href="https://docs.rs/esi/latest/esi/">implements</a> a subset of
+<a data-link-type="biblio" href="#biblio-esi-lang" title="ESI Language Specification 1.0">[ESI-LANG]</a>, for example). Depending on the development team, these dependencies
 might not even be third-party in the traditional sense, but developed as
 internally-shared frameworks that are jammed together through internal
 infrastructure:</p>
@@ -892,8 +901,11 @@ to ensure the integrity of their supply chain in a dynamic fashion:</p>
 <c- p>&lt;/</c-><c- f>script</c-><c- p>></c->
 </pre>
    <div class="example" id="intro-example">
-    <a class="self-link" href="#intro-example"></a> 
-    <p>Pages will assert both a signature and a key for a given <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script②">script</a></code> or <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element">style</a></code> element. Here, we’ll use the test Ed25519 keys from <a data-link-type="biblio" href="#biblio-rfc9421" title="HTTP Message Signatures">[RFC9421]</a> to demonstrate:</p>
+    <a class="self-link" href="#intro-example"></a>
+
+
+    <p>Pages will assert both a signature and a key for a given <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script②">script</a></code> or <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element">style</a></code>
+element. Here, we’ll use the test Ed25519 keys from <a data-link-type="biblio" href="#biblio-rfc9421" title="HTTP Message Signatures">[RFC9421]</a> to demonstrate:</p>
 <pre class="language-html highlight"><c- p>&lt;</c-><c- f>script</c-> <c- e>signature</c-><c- o>=</c-><c- s>"ed25519-hyFFWrQ21vPXZDV07Mn17Q3ufvYBJDs23CeYu1hGUQi4D+LN99D9I1KmXBGV5kBZtf8h4JIxBLoBzIqLdpudDg=="</c->
         <c- e>integrity</c-><c- o>=</c-><c- s>"ed25519-JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="</c-><c- p>></c->
   alert<c- p>(</c-><c- mf>1</c-><c- p>);</c->
@@ -908,25 +920,25 @@ to ensure the integrity of their supply chain in a dynamic fashion:</p>
    <h3 class="heading settled" data-level="2.1" id="validation"><span class="secno">2.1. </span><span class="content">Validation</span><a class="self-link" href="#validation"></a></h3>
    <div class="algorithm" data-algorithm="parse element signatures">
     <p>To <dfn class="dfn-paneled" data-dfn-type="abstract-op" data-export id="abstract-opdef-parse-signatures">parse signatures</dfn> given an <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-element" id="ref-for-concept-element">element</a> <var>el</var>, execute
-the following steps, which return a <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list" id="ref-for-list">list</a> of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#byte-sequence" id="ref-for-byte-sequence">byte sequences</a>:</p>
+the following steps, which return a <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list" id="ref-for-list">list</a> containing <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#byte-sequence" id="ref-for-byte-sequence">byte sequences</a>
+representing base64-decoded signatures, or <code>failure</code> if decoding failed:</p>
     <ol>
      <li data-md>
       <p>Let <var>result</var> be an empty <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list" id="ref-for-list①">list</a>.</p>
      <li data-md>
       <p>If <var>el</var> does not have a <code>signature</code> attribute, return <var>result</var>.</p>
      <li data-md>
-      <p>For each <var>item</var> resulting from <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#split-on-ascii-whitespace" id="ref-for-split-on-ascii-whitespace">splitting</a> <var>el</var>’s <code>signature</code> attribute’s value on ASCII whitespace:</p>
+      <p>For each <var>item</var> resulting from <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#split-on-ascii-whitespace" id="ref-for-split-on-ascii-whitespace">splitting</a> <var>el</var>’s
+<code>signature</code> attribute’s value on ASCII whitespace:</p>
       <ol>
        <li data-md>
-        <p>Let <var>algorithm-and-value</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#strictly-split" id="ref-for-strictly-split">splitting</a> <var>item</var> on U+002D (<code>-</code>).</p>
+        <p>Let <var>algorithm-and-value</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#strictly-split" id="ref-for-strictly-split">splitting</a>
+<var>item</var> on U+002D (<code>-</code>).</p>
        <li data-md>
         <p>If <var>algorithm-and-value</var>[0] is not "<code>ed25519</code>", <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue">continue</a>.</p>
        <li data-md>
-        <p>Let <var>decoded</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#forgiving-base64-decode" id="ref-for-forgiving-base64-decode">forgiving-base64 decoding</a> <var>algorithm-and-value</var>[1].</p>
-       <li data-md>
-        <p>If <var>decoded</var> is failure, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue①">continue</a>.</p>
-       <li data-md>
-        <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-append" id="ref-for-list-append">Append</a> <var>algorithm-and-value</var>[1] to <var>result</var>.</p>
+        <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-append" id="ref-for-list-append">Append</a> the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#forgiving-base64-decode" id="ref-for-forgiving-base64-decode">forgiving-base64 decoding</a>
+<var>algorithm-and-value</var>[1] to <var>result</var>.</p>
       </ol>
      <li data-md>
       <p>Return <var>result</var>.</p>
@@ -941,30 +953,35 @@ the following steps, which return a <a data-link-type="dfn" href="https://infra.
      <li data-md>
       <p>If <var>el</var> does not have an <code>integrity</code> attribute, return <var>result</var>.</p>
      <li data-md>
-      <p>For each <var>item</var> resulting from <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#split-on-ascii-whitespace" id="ref-for-split-on-ascii-whitespace①">splitting</a> <var>el</var>’s <code>integrity</code> attribute’s value on ASCII whitespace:</p>
+      <p>For each <var>item</var> resulting from <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#split-on-ascii-whitespace" id="ref-for-split-on-ascii-whitespace①">splitting</a> <var>el</var>’s
+<code>integrity</code> attribute’s value on ASCII whitespace:</p>
       <ol>
        <li data-md>
-        <p>Let <var>algorithm-and-value</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#strictly-split" id="ref-for-strictly-split①">splitting</a> <var>item</var> on U+002D (<code>-</code>).</p>
+        <p>Let <var>algorithm-and-value</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#strictly-split" id="ref-for-strictly-split①">splitting</a>
+<var>item</var> on U+002D (<code>-</code>).</p>
        <li data-md>
-        <p>If <var>algorithm-and-value</var>[0] is not "<code>ed25519</code>", <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue②">continue</a>.</p>
+        <p>If <var>algorithm-and-value</var>[0] is not "<code>ed25519</code>", <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue①">continue</a>.</p>
        <li data-md>
-        <p>Let <var>decoded</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#forgiving-base64-decode" id="ref-for-forgiving-base64-decode①">forgiving-base64 decoding</a> <var>algorithm-and-value</var>[1].</p>
+        <p>Let <var>decoded</var> be the result of <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#forgiving-base64-decode" id="ref-for-forgiving-base64-decode①">forgiving-base64 decoding</a>
+<var>algorithm-and-value</var>[1].</p>
        <li data-md>
-        <p>If <var>decoded</var> is failure, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue③">continue</a>.</p>
+        <p>If <var>decoded</var> is failure, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue②">continue</a>.</p>
        <li data-md>
         <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-append" id="ref-for-list-append①">Append</a> <var>algorithm-and-value</var>[1] to <var>result</var>.</p>
       </ol>
      <li data-md>
       <p>Return <var>result</var>.</p>
     </ol>
-    <p class="note" role="note"><span class="marker">Note:</span> This is partially a simplification of SRI’s <a href="https://wicg.github.io/signature-based-sri/#parsing">parse metadata</a> algorithm. It might be reasonable to rely on that directly in the future.</p>
+    <p class="note" role="note"><span class="marker">Note:</span> This is partially a simplification of SRI’s
+<a href="https://wicg.github.io/signature-based-sri/#parsing">parse metadata</a>
+algorithm. It might be reasonable to rely on that directly in the future.</p>
    </div>
    <div class="algorithm" data-algorithm="has an invalid inline signature">
     <p>An element <dfn class="dfn-paneled" data-dfn-for="element" data-dfn-type="dfn" data-noexport id="element-has-an-invalid-inline-signature">has an invalid inline signature</dfn> if the
 following algorithm returns "<code>Invalid</code>" given an <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-element" id="ref-for-concept-element②">element</a> <var>el</var>:</p>
     <ol>
      <li data-md>
-      <p>Let <var>signatures</var> be the result of executing <a data-link-type="abstract-op">parse signature</a> on <var>el</var>.</p>
+      <p>Let <var>signatures</var> be the result of executing <u class="link-error" data-lt="parse signature" title="LINK ERROR: No &apos;abstract-op&apos; refs found for &apos;parse signature&apos;.">parse signature</u> on <var>el</var>.</p>
      <li data-md>
       <p>If <var>signatures</var> is <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-empty" id="ref-for-list-empty">empty</a>, return "<code>Valid</code>".</p>
      <li data-md>
@@ -974,6 +991,8 @@ following algorithm returns "<code>Invalid</code>" given an <a data-link-type="d
      <li data-md>
       <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-iterate" id="ref-for-list-iterate">For each</a> <var>signature</var> in <var>signatures</var>:</p>
       <ol>
+       <li data-md>
+        <p>If <var>signature</var> is <code>failure</code>, <a data-link-type="dfn" href="https://infra.spec.whatwg.org/#iteration-continue" id="ref-for-iteration-continue③">continue</a>.</p>
        <li data-md>
         <p><a data-link-type="dfn" href="https://infra.spec.whatwg.org/#list-iterate" id="ref-for-list-iterate①">For each</a> <var>key</var> in <var>keys</var>:</p>
         <ol>
@@ -1006,9 +1025,15 @@ signature validation before being used on a page:</p>
 };
 </pre>
     <p>The <dfn class="dfn-paneled" data-dfn-for="script" data-dfn-type="element-attr" data-export id="element-attrdef-script-signature"><code>signature</code></dfn> attribute represents a
-set of signatures over the element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content①">child text content</a>. The <code><a data-link-type="element-sub" href="#element-attrdef-script-signature" id="ref-for-element-attrdef-script-signature">signature</a></code> attribute must not be specified when the <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src">src</a></code> attribute is specified. </p>
+set of signatures over the element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content①">child text content</a>. The
+<code><a data-link-type="element-sub" href="#element-attrdef-script-signature" id="ref-for-element-attrdef-script-signature">signature</a></code> attribute must not be specified when the <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src">src</a></code>
+attribute is specified.
+
+</p>
     <p>The <code class="idl"><a data-link-type="idl" href="#dom-htmlscriptelement-signature" id="ref-for-dom-htmlscriptelement-signature">signature</a></code> IDL attribute <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#reflect" id="ref-for-reflect">reflects</a> the value
-of the <code><a data-link-type="element-sub" href="#element-attrdef-script-signature" id="ref-for-element-attrdef-script-signature①">signature</a></code> content attribute. </p>
+of the <code><a data-link-type="element-sub" href="#element-attrdef-script-signature" id="ref-for-element-attrdef-script-signature①">signature</a></code> content attribute.
+
+</p>
    </blockquote>
    <p>We’ll also remove the restriction against <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity">integrity</a></code> attributes
 coexisting with <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src①">src</a></code> attributes:</p>
@@ -1016,10 +1041,13 @@ coexisting with <code><a data-link-type="element-sub" href="https://html.spec.wh
     <p>
      The <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity①">integrity</a></code> attribute represents the <a data-link-type="dfn" href="https://fetch.spec.whatwg.org/#concept-request-integrity-metadata" id="ref-for-concept-request-integrity-metadata">integrity metadata</a> for
 requests which this element is responsible for. The value is text. 
-     <del>The <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity②">integrity</a></code> attribute must not be specified when the <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src②">src</a></code> attribute is not specified.</del>
+     <del>The
+<code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity②">integrity</a></code> attribute must not be specified when the <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src②">src</a></code>
+attribute is not specified.</del>
     </p>
    </blockquote>
-   <p class="issue" id="issue-4eedf0b6"><a class="self-link" href="#issue-4eedf0b6"></a> We could also reconsider the restrictions on using <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity③">integrity</a></code> on <a data-link-type="dfn" href="https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks" id="ref-for-sec-data-blocks">data blocks</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/#import-map" id="ref-for-import-map">import maps</a>. Both could benefit from this kind of
+   <p class="issue" id="issue-4eedf0b6"><a class="self-link" href="#issue-4eedf0b6"></a> We could also reconsider the restrictions on using <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity③">integrity</a></code>
+on <a data-link-type="dfn" href="https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks" id="ref-for-sec-data-blocks">data blocks</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/#import-map" id="ref-for-import-map">import maps</a>. Both could benefit from this kind of
 integrity check?</p>
    <h4 class="heading settled" data-level="2.2.2" id="html-signature-style"><span class="secno">2.2.2. </span><span class="content"><code>&lt;style></code> Patches #</span><a class="self-link" href="#html-signature-style"></a></h4>
    <p>The following additions to <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element②">style</a></code> are necessary:</p>
@@ -1029,26 +1057,40 @@ integrity check?</p>
   [<a class="idl-code" data-link-type="extended-attribute" href="https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions" id="ref-for-cereactions②"><c- g>CEReactions</c-></a>] <c- b>attribute</c-> <a class="idl-code" data-link-type="interface" href="https://webidl.spec.whatwg.org/#idl-DOMString" id="ref-for-idl-DOMString②"><c- b>DOMString</c-></a> <dfn class="dfn-paneled idl-code" data-dfn-for="HTMLStyleElement" data-dfn-type="attribute" data-export data-type="DOMString" id="dom-htmlstyleelement-signature"><code><c- g>signature</c-></code></dfn>;
 };
 </pre>
-    <p>The <dfn class="dfn-paneled" data-dfn-for="style" data-dfn-type="element-attr" data-export id="element-attrdef-style-integrity"><code>integrity</code></dfn> attribute represents <a data-link-type="dfn" href="https://fetch.spec.whatwg.org/#concept-request-integrity-metadata" id="ref-for-concept-request-integrity-metadata①">integrity metadata</a> for the element. The value is text. <a data-link-type="biblio" href="#biblio-sri" title="Subresource Integrity">[SRI]</a>. </p>
+    <p>The <dfn class="dfn-paneled" data-dfn-for="style" data-dfn-type="element-attr" data-export id="element-attrdef-style-integrity"><code>integrity</code></dfn> attribute represents
+<a data-link-type="dfn" href="https://fetch.spec.whatwg.org/#concept-request-integrity-metadata" id="ref-for-concept-request-integrity-metadata①">integrity metadata</a> for the element. The value is text. <a data-link-type="biblio" href="#biblio-sri" title="Subresource Integrity">[SRI]</a>.
+
+</p>
     <p>The <dfn class="dfn-paneled" data-dfn-for="style" data-dfn-type="element-attr" data-export id="element-attrdef-style-signature"><code>signature</code></dfn> attribute represents a
-set of signatures over the element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content②">child text content</a>. </p>
+set of signatures over the element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content②">child text content</a>.
+
+</p>
     <p>The <code class="idl"><a data-link-type="idl" href="#dom-htmlstyleelement-integrity" id="ref-for-dom-htmlstyleelement-integrity">integrity</a></code> IDL attribute <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#reflect" id="ref-for-reflect①">reflects</a> the value
-of the <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity④">integrity</a></code> content attribute. </p>
+of the <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity④">integrity</a></code> content attribute.
+
+</p>
    </blockquote>
    <blockquote>
     <p>The <code class="idl"><a data-link-type="idl" href="#dom-htmlstyleelement-signature" id="ref-for-dom-htmlstyleelement-signature">signature</a></code> IDL attribute <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#reflect" id="ref-for-reflect②">reflects</a> the value
-of the <code><a data-link-type="element-sub" href="#element-attrdef-script-signature" id="ref-for-element-attrdef-script-signature②">signature</a></code> content attribute. </p>
+of the <code><a data-link-type="element-sub" href="#element-attrdef-script-signature" id="ref-for-element-attrdef-script-signature②">signature</a></code> content attribute.
+
+</p>
    </blockquote>
    <h4 class="heading settled" data-level="2.2.3" id="html-script"><span class="secno">2.2.3. </span><span class="content">Script execution</span><a class="self-link" href="#html-script"></a></h4>
    <div class="algorithm" data-algorithm="prepare the script element">
-    <p>We’ll add a new validation step alongside the callout to CSP in step 19 of HTML’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/#prepare-the-script-element" id="ref-for-prepare-the-script-element">prepare the script element</a> algorithm as follows:</p>
+    <p>We’ll add a new validation step alongside the callout to CSP in step 19 of HTML’s
+<a data-link-type="dfn" href="https://html.spec.whatwg.org/#prepare-the-script-element" id="ref-for-prepare-the-script-element">prepare the script element</a> algorithm as follows:</p>
     <ol start="19">
      <li>
-      <p> If <var>el</var> does not have a <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src③">src</a></code> content attribute,
-      then return if either of the following statements is true: </p>
+      <p>
+      If <var>el</var> does not have a <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src" id="ref-for-attr-script-src③">src</a></code> content attribute,
+      then return if either of the following statements is true:
+    </p>
       <ul>
        <li>
-        <p>The <a data-link-type="dfn" href="https://w3c.github.io/webappsec-csp/#should-block-inline" id="ref-for-should-block-inline">Should element’s inline type behavior be blocked by Content Security Policy?</a> algorithm returns "<code>Blocked</code>" when given <var>el</var>, "<code>script</code>", and <var>source text</var>.</p>
+        <p>The <a data-link-type="dfn" href="https://w3c.github.io/webappsec-csp/#should-block-inline" id="ref-for-should-block-inline">Should element’s inline type behavior be blocked by Content Security Policy?</a>
+           algorithm returns "<code>Blocked</code>" when given <var>el</var>, "<code>script</code>", and
+           <var>source text</var>.</p>
        <li>
         <p>
          <ins><var>el</var> <a data-link-type="dfn" href="#element-has-an-invalid-inline-signature" id="ref-for-element-has-an-invalid-inline-signature">has an invalid inline signature</a>.</ins>
@@ -1058,10 +1100,12 @@ of the <code><a data-link-type="element-sub" href="#element-attrdef-script-signa
    </div>
    <h4 class="heading settled" data-level="2.2.4" id="html-style"><span class="secno">2.2.4. </span><span class="content">Style application</span><a class="self-link" href="#html-style"></a></h4>
    <div class="algorithm" data-algorithm="update a style block">
-    <p>We’ll add a new validation step alongside the callout to CSP in step 5 of HTML’s <a data-link-type="dfn" href="https://html.spec.whatwg.org/#update-a-style-block" id="ref-for-update-a-style-block">update a style block</a> algorithm as follows:</p>
+    <p>We’ll add a new validation step alongside the callout to CSP in step 5 of HTML’s
+<a data-link-type="dfn" href="https://html.spec.whatwg.org/#update-a-style-block" id="ref-for-update-a-style-block">update a style block</a> algorithm as follows:</p>
     <ol start="5">
      <li>
-      <p>If the <a data-link-type="dfn" href="https://w3c.github.io/webappsec-csp/#should-block-inline" id="ref-for-should-block-inline①">Should element’s inline type behavior be blocked by Content Security Policy?</a> algorithm returns "<code>Blocked</code>" when given the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element③">style</a></code> element, "<code>style</code>",
+      <p>If the <a data-link-type="dfn" href="https://w3c.github.io/webappsec-csp/#should-block-inline" id="ref-for-should-block-inline①">Should element’s inline type behavior be blocked by Content Security Policy?</a>
+       algorithm returns "<code>Blocked</code>" when given the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element③">style</a></code> element, "<code>style</code>",
        and the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element④">style</a></code> element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content③">child text content</a>, then return.</p>
      <li>
       <p>
@@ -1071,14 +1115,18 @@ of the <code><a data-link-type="element-sub" href="#element-attrdef-script-signa
    </div>
    <h2 class="heading settled" data-level="3" id="implementation"><span class="secno">3. </span><span class="content">Implementation Considerations</span><a class="self-link" href="#implementation"></a></h2>
    <h3 class="heading settled" data-level="3.1" id="implementation-message"><span class="secno">3.1. </span><span class="content">What is being signed?</span><a class="self-link" href="#implementation-message"></a></h3>
-   <p>The signature is asserted over the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script⑤">script</a></code> or <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element⑥">style</a></code> element’s <a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content④">child text content</a>, which importantly includes both leading and trailing
+   <p>The signature is asserted over the <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script⑤">script</a></code> or <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element⑥">style</a></code> element’s
+<a data-link-type="dfn" href="https://dom.spec.whatwg.org/#concept-child-text-content" id="ref-for-concept-child-text-content④">child text content</a>, which importantly includes both leading and trailing
 whitespace. That means that <code>&lt;script>alert(1);&lt;/script></code> will have a different
 signature than <code>&lt;script> alert(1);&lt;/script></code> and <code>&lt;script>alert(1); &lt;/script></code>.</p>
    <h3 class="heading settled" data-level="3.2" id="implementation-signature-base"><span class="secno">3.2. </span><span class="content">How does this compare to Signature-Based Integrity?</span><a class="self-link" href="#implementation-signature-base"></a></h3>
-   <p>The <a href="https://wicg.github.io/signature-based-sri/">signature-based integrity</a> proposal relies upon HTTP Message Signatures <a data-link-type="biblio" href="#biblio-rfc9421" title="HTTP Message Signatures">[RFC9421]</a> to explain how
+   <p>The <a href="https://wicg.github.io/signature-based-sri/">signature-based integrity</a>
+proposal relies upon HTTP Message Signatures <a data-link-type="biblio" href="#biblio-rfc9421" title="HTTP Message Signatures">[RFC9421]</a> to explain how
 signatures can be validated over resources requested from a remote server. As
 the request and response metadata plays an important role in how the resource
-is treated by the user agent, the intermediate <a href="https://www.rfc-editor.org/rfc/rfc9421.html#name-creating-the-signature-base">signature base</a> concept is a necessary complexity that allows a server to ensure that the
+is treated by the user agent, the intermediate
+<a href="https://www.rfc-editor.org/rfc/rfc9421.html#name-creating-the-signature-base">signature base</a>
+concept is a necessary complexity that allows a server to ensure that the
 signature covers all the relevant data.</p>
    <p>Here, we have a simpler task: the entirety of the content to be validated is
 embedded in the document, available at parse time. We can work with the content
@@ -1132,21 +1180,31 @@ of additional inspection.</p>
     in the normative parts of this document
     are to be interpreted as described in RFC 2119.
     However, for readability,
-    these words do not appear in all uppercase letters in this specification. </p>
+    these words do not appear in all uppercase letters in this specification.
+
+    </p>
    <p>All of the text of this specification is normative
-    except sections explicitly marked as non-normative, examples, and notes. <a data-link-type="biblio" href="#biblio-rfc2119" title="Key words for use in RFCs to Indicate Requirement Levels">[RFC2119]</a> </p>
+    except sections explicitly marked as non-normative, examples, and notes. <a data-link-type="biblio" href="#biblio-rfc2119" title="Key words for use in RFCs to Indicate Requirement Levels">[RFC2119]</a>
+
+    </p>
    <p>Examples in this specification are introduced with the words “for example”
     or are set apart from the normative text
     with <code>class="example"</code>,
-    like this: </p>
+    like this:
+
+    </p>
    <div class="example" id="w3c-example">
-    <a class="self-link" href="#w3c-example"></a> 
-    <p>This is an example of an informative example. </p>
+    <a class="self-link" href="#w3c-example"></a>
+        
+    <p>This is an example of an informative example.
+    </p>
    </div>
    <p>Informative notes begin with the word “Note”
     and are set apart from the normative text
     with <code>class="note"</code>,
-    like this: </p>
+    like this:
+
+    </p>
    <p class="note" role="note">Note, this is an informative note.</p>
   </div>
   <script src="https://www.w3.org/scripts/TR/2021/fixup.js"></script>
@@ -1276,7 +1334,8 @@ of additional inspection.</p>
 </pre>
   <h2 class="no-num no-ref heading settled" id="issues-index"><span class="content">Issues Index</span><a class="self-link" href="#issues-index"></a></h2>
   <div style="counter-reset:issue">
-   <div class="issue"> We could also reconsider the restrictions on using <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity">integrity</a></code> on <a data-link-type="dfn" href="https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks">data blocks</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/#import-map">import maps</a>. Both could benefit from this kind of
+   <div class="issue"> We could also reconsider the restrictions on using <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity">integrity</a></code>
+on <a data-link-type="dfn" href="https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks">data blocks</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/#import-map">import maps</a>. Both could benefit from this kind of
 integrity check? <a class="issue-return" href="#issue-4eedf0b6" title="Jump to section">↵</a></div>
   </div>
 <script>/* Boilerplate: script-dom-helper */

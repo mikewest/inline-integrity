@@ -134,7 +134,8 @@ Validation {#validation}
 <div algorithm="parse element signatures">
 
 To <dfn abstract-op>parse signatures</dfn> given an [=/element=] |el|, execute
-the following steps, which return a [=list=] of [=byte sequences=]:
+the following steps, which return a [=list=] containing [=byte sequences=]
+representing base64-decoded signatures, or `failure` if decoding failed:
 
 1.  Let |result| be an empty [=list=].
 
@@ -148,12 +149,8 @@ the following steps, which return a [=list=] of [=byte sequences=]:
 
     1.  If |algorithm-and-value|[0] is not "`ed25519`", [=iteration/continue=].
 
-    1.  Let |decoded| be the result of [=forgiving-base64 decoding=]
-        |algorithm-and-value|[1].
-
-    1.  If |decoded| is failure, [=iteration/continue=].
-
-    1.  [=list/Append=] |algorithm-and-value|[1] to |result|.
+    1.  [=list/Append=] the result of [=forgiving-base64 decoding=]
+        |algorithm-and-value|[1] to |result|.
 
 1.  Return |result|.
 
@@ -205,6 +202,8 @@ following algorithm returns "`Invalid`" given an [=/element=] |el|:
 4.  Let |inline content| be |el|'s [=child text content=].
 
 5.  [=list/For each=] |signature| in |signatures|:
+
+    1.  If |signature| is `failure`, [=iteration/continue=].
 
     1.  [=list/For each=] |key| in |keys|:
 

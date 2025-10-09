@@ -6,7 +6,7 @@
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <meta content="Bikeshed version 3f621ba99, updated Mon Jul 28 15:38:36 2025 -0700" name="generator">
   <link href="https://mikewest.github.io/inline-integrity/" rel="canonical">
-  <meta content="754745a0e9aa255dbb260aa73e799f6957434f85" name="revision">
+  <meta content="18961b1a2fa35695e5c0b9aeeb7a5da20ce1e37c" name="revision">
   <meta content="dark light" name="color-scheme">
   <link href="https://www.w3.org/StyleSheets/TR/2021/dark.css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css">
 <style>/* Boilerplate: style-autolinks */
@@ -752,7 +752,7 @@ var[data-var-color="6"] { --var-vg: #FFBCF2; }
   <div class="head">
    <h1 class="p-name no-ref" id="title">Inline Integrity</h1>
    <p id="w3c-state"><a href="https://www.w3.org/standards/types/#CG-DRAFT">Draft Community Group Report</a>,
-    <time class="dt-updated" datetime="2025-08-25">25 August 2025</time></p>
+    <time class="dt-updated" datetime="2025-10-09">9 October 2025</time></p>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -862,16 +862,16 @@ on the page’s behalf, and to include those resources as part of the page’s
 construction:</p>
 <pre class="language-html highlight"><c- p>&lt;</c-><c- f>script</c-> <c- e>src</c-><c- o>=</c-><c- s>"https://widgets-r-us.example/widget.js"</c-><c- p>>&lt;/</c-><c- f>script</c-><c- p>></c->
 </pre>
-   <p>Developers, however, often have reasons (performance, privacy, etc) to avoid
-asking users' agents to take responsibility for these additional requests.
-Rather than composing the page at runtime, they might choose to embed code more
-directly, copy/pasting snippets into inline <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script①">script</a></code> blocks, or relying upon
-layers of infrastructure to inline their dependencies through server-side
-includes (Fastly <a href="https://docs.rs/esi/latest/esi/">implements</a> a subset of
-<a data-link-type="biblio" href="#biblio-esi-lang" title="ESI Language Specification 1.0">[ESI-LANG]</a>, for example). Depending on the development team, these dependencies
-might not even be third-party in the traditional sense, but developed as
-internally-shared frameworks that are jammed together through internal
-infrastructure:</p>
+   <p>Users experience performance and privacy benefits if the developer can inline
+some of those requests instead of asking the user’s agent to make them
+directly to the source server. Rather than composing the page at runtime,
+develoeprs might choose to embed code more directly, copy/pasting snippets
+into inline <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/scripting.html#script" id="ref-for-script①">script</a></code> blocks, or relying upon layers of infrastructure to
+inline their dependencies through server-side includes (Fastly
+<a href="https://docs.rs/esi/latest/esi/">implements</a> a subset of <a data-link-type="biblio" href="#biblio-esi-lang" title="ESI Language Specification 1.0">[ESI-LANG]</a>, for
+example). Depending on the development team, these dependencies might not even
+be third-party in the traditional sense, but developed as internally-shared
+frameworks that are jammed together through internal infrastructure:</p>
 <pre class="language-xml highlight"><c- d>&lt;!-- The main document: --></c->
 <c- f>&lt;esi:include</c-> <c- e>src=</c-><c- s>"https://widgets-r-us.example/widget.include"</c-> <c- f>/></c->
 </pre>
@@ -886,7 +886,8 @@ strong protections against injection attacks, as architectural decisions might
 make it difficult to coordinate <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/urls-and-fetching.html#attr-nonce" id="ref-for-attr-nonce">nonce</a></code> attributes or content hashes
 between inlined scripts and `<code><a data-link-type="http-header" href="https://w3c.github.io/webappsec-csp/#header-content-security-policy" id="ref-for-header-content-security-policy">Content-Security-Policy</a></code>` headers delivered
 with the page. Sites might fall back to allowing <code>'unsafe-inline'</code>, or simply
-forgoing a policy in the first place.</p>
+forgoing a policy in the first place. This can reduce websites' security, increasing
+the risk to a site’s users.</p>
    <p>Signatures might provide an option that satisfies developers' need without
 additionally complicating deployments. In short, if developers can agree with
 their dependencies on a (set of) signing key(s), they can encode those

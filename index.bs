@@ -57,16 +57,16 @@ construction:
 <script src="https://widgets-r-us.example/widget.js"></script>
 ```
 
-Developers, however, often have reasons (performance, privacy, etc) to avoid
-asking users' agents to take responsibility for these additional requests.
-Rather than composing the page at runtime, they might choose to embed code more
-directly, copy/pasting snippets into inline <{script}> blocks, or relying upon
-layers of infrastructure to inline their dependencies through server-side
-includes (Fastly [implements](https://docs.rs/esi/latest/esi/) a subset of
-[[ESI-LANG]], for example). Depending on the development team, these dependencies
-might not even be third-party in the traditional sense, but developed as
-internally-shared frameworks that are jammed together through internal
-infrastructure:
+Users experience performance and privacy benefits if the developer can inline
+some of those requests instead of asking the user's agent to make them
+directly to the source server. Rather than composing the page at runtime,
+develoeprs might choose to embed code more directly, copy/pasting snippets
+into inline <{script}> blocks, or relying upon layers of infrastructure to
+inline their dependencies through server-side includes (Fastly
+[implements](https://docs.rs/esi/latest/esi/) a subset of [[ESI-LANG]], for
+example). Depending on the development team, these dependencies might not even
+be third-party in the traditional sense, but developed as internally-shared
+frameworks that are jammed together through internal infrastructure:
 
 ```xml
 <!-- The main document: -->
@@ -86,7 +86,8 @@ strong protections against injection attacks, as architectural decisions might
 make it difficult to coordinate <{htmlsvg-global/nonce}> attributes or content hashes
 between inlined scripts and [:Content-Security-Policy:] headers delivered
 with the page. Sites might fall back to allowing `'unsafe-inline'`, or simply
-forgoing a policy in the first place.
+forgoing a policy in the first place. This can reduce websites' security, increasing
+the risk to a site's users.
 
 Signatures might provide an option that satisfies developers' need without
 additionally complicating deployments. In short, if developers can agree with

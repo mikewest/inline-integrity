@@ -6,7 +6,7 @@
   <link href="https://www.w3.org/StyleSheets/TR/2021/cg-draft" rel="stylesheet">
   <meta content="Bikeshed version 3f621ba99, updated Mon Jul 28 15:38:36 2025 -0700" name="generator">
   <link href="https://mikewest.github.io/inline-integrity/" rel="canonical">
-  <meta content="18961b1a2fa35695e5c0b9aeeb7a5da20ce1e37c" name="revision">
+  <meta content="643cb99ca4d80980b606846b311d8dd06056721f" name="revision">
   <meta content="dark light" name="color-scheme">
   <link href="https://www.w3.org/StyleSheets/TR/2021/dark.css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css">
 <style>/* Boilerplate: style-autolinks */
@@ -752,7 +752,7 @@ var[data-var-color="6"] { --var-vg: #FFBCF2; }
   <div class="head">
    <h1 class="p-name no-ref" id="title">Inline Integrity</h1>
    <p id="w3c-state"><a href="https://www.w3.org/standards/types/#CG-DRAFT">Draft Community Group Report</a>,
-    <time class="dt-updated" datetime="2025-10-09">9 October 2025</time></p>
+    <time class="dt-updated" datetime="2025-10-23">23 October 2025</time></p>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -1048,7 +1048,7 @@ attribute is not specified.</del>
     </p>
    </blockquote>
    <p class="issue" id="issue-4eedf0b6"><a class="self-link" href="#issue-4eedf0b6"></a> We could also reconsider the restrictions on using <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity" id="ref-for-attr-script-integrity③">integrity</a></code>
-on <a data-link-type="dfn" href="https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks" id="ref-for-sec-data-blocks">data blocks</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/#import-map" id="ref-for-import-map">import maps</a>. Both could benefit from this kind of
+on <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/scripting.html#data-block" id="ref-for-data-block">data blocks</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/#import-map" id="ref-for-import-map">import maps</a>. Both could benefit from this kind of
 integrity check?</p>
    <h4 class="heading settled" data-level="2.2.2" id="html-signature-style"><span class="secno">2.2.2. </span><span class="content"><code>&lt;style></code> Patches #</span><a class="self-link" href="#html-signature-style"></a></h4>
    <p>The following additions to <code><a data-link-type="element" href="https://html.spec.whatwg.org/multipage/semantics.html#the-style-element" id="ref-for-the-style-element②">style</a></code> are necessary:</p>
@@ -1246,11 +1246,6 @@ of additional inspection.</p>
      <li><span class="dfn-paneled" id="27d9b7ea">element</span>
     </ul>
    <li>
-    <a data-link-type="biblio">[ECMASCRIPT]</a> defines the following terms:
-    <ul>
-     <li><span class="dfn-paneled" id="df732fab">Data Blocks</span>
-    </ul>
-   <li>
     <a data-link-type="biblio">[FETCH]</a> defines the following terms:
     <ul>
      <li><span class="dfn-paneled" id="d79a826f">integrity metadata</span>
@@ -1261,6 +1256,7 @@ of additional inspection.</p>
      <li><span class="dfn-paneled" id="402ed79d">CEReactions</span>
      <li><span class="dfn-paneled" id="ec4838d8">HTMLScriptElement</span>
      <li><span class="dfn-paneled" id="aa8746c3">HTMLStyleElement</span>
+     <li><span class="dfn-paneled" id="fdb3430f">data block</span>
      <li><span class="dfn-paneled" id="33173c05">import map</span>
      <li><span class="dfn-paneled" id="3dc5399b">integrity</span>
      <li><span class="dfn-paneled" id="6cfa013d">link</span>
@@ -1298,8 +1294,6 @@ of additional inspection.</p>
    <dd>Mike West; Antonio Sartori. <a href="https://w3c.github.io/webappsec-csp/"><cite>Content Security Policy Level 3</cite></a>. URL: <a href="https://w3c.github.io/webappsec-csp/">https://w3c.github.io/webappsec-csp/</a>
    <dt id="biblio-dom">[DOM]
    <dd>Anne van Kesteren. <a href="https://dom.spec.whatwg.org/"><cite>DOM Standard</cite></a>. Living Standard. URL: <a href="https://dom.spec.whatwg.org/">https://dom.spec.whatwg.org/</a>
-   <dt id="biblio-ecmascript">[ECMASCRIPT]
-   <dd><a href="https://tc39.es/ecma262/multipage/"><cite>ECMAScript Language Specification</cite></a>. URL: <a href="https://tc39.es/ecma262/multipage/">https://tc39.es/ecma262/multipage/</a>
    <dt id="biblio-fetch">[FETCH]
    <dd>Anne van Kesteren. <a href="https://fetch.spec.whatwg.org/"><cite>Fetch Standard</cite></a>. Living Standard. URL: <a href="https://fetch.spec.whatwg.org/">https://fetch.spec.whatwg.org/</a>
    <dt id="biblio-html">[HTML]
@@ -1336,7 +1330,7 @@ of additional inspection.</p>
   <h2 class="no-num no-ref heading settled" id="issues-index"><span class="content">Issues Index</span><a class="self-link" href="#issues-index"></a></h2>
   <div style="counter-reset:issue">
    <div class="issue"> We could also reconsider the restrictions on using <code><a data-link-type="element-sub" href="https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity">integrity</a></code>
-on <a data-link-type="dfn" href="https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks">data blocks</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/#import-map">import maps</a>. Both could benefit from this kind of
+on <a data-link-type="dfn" href="https://html.spec.whatwg.org/multipage/scripting.html#data-block">data blocks</a> and <a data-link-type="dfn" href="https://html.spec.whatwg.org/#import-map">import maps</a>. Both could benefit from this kind of
 integrity check? <a class="issue-return" href="#issue-4eedf0b6" title="Jump to section">↵</a></div>
   </div>
 <script>/* Boilerplate: script-dom-helper */
@@ -1567,7 +1561,6 @@ let dfnPanelData = {
 "c36080a3": {"dfnID":"c36080a3","dfnText":"Should element's inline type behavior be blocked by Content Security Policy?","external":true,"refSections":[{"refs":[{"id":"ref-for-should-block-inline"}],"title":"2.2.3. Script execution"},{"refs":[{"id":"ref-for-should-block-inline\u2460"}],"title":"2.2.4. Style application"}],"url":"https://w3c.github.io/webappsec-csp/#should-block-inline"},
 "c91ed7c5": {"dfnID":"c91ed7c5","dfnText":"update a style block","external":true,"refSections":[{"refs":[{"id":"ref-for-update-a-style-block"}],"title":"2.2.4. Style application"}],"url":"https://html.spec.whatwg.org/#update-a-style-block"},
 "d79a826f": {"dfnID":"d79a826f","dfnText":"integrity metadata","external":true,"refSections":[{"refs":[{"id":"ref-for-concept-request-integrity-metadata"}],"title":"2.2.1. <script> Patches #"},{"refs":[{"id":"ref-for-concept-request-integrity-metadata\u2460"}],"title":"2.2.2. <style> Patches #"}],"url":"https://fetch.spec.whatwg.org/#concept-request-integrity-metadata"},
-"df732fab": {"dfnID":"df732fab","dfnText":"Data Blocks","external":true,"refSections":[{"refs":[{"id":"ref-for-sec-data-blocks"}],"title":"2.2.1. <script> Patches #"}],"url":"https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks"},
 "dom-htmlscriptelement-signature": {"dfnID":"dom-htmlscriptelement-signature","dfnText":"signature","external":false,"refSections":[{"refs":[{"id":"ref-for-dom-htmlscriptelement-signature"}],"title":"2.2.1. <script> Patches #"}],"url":"#dom-htmlscriptelement-signature"},
 "dom-htmlstyleelement-integrity": {"dfnID":"dom-htmlstyleelement-integrity","dfnText":"integrity","external":false,"refSections":[{"refs":[{"id":"ref-for-dom-htmlstyleelement-integrity"}],"title":"2.2.2. <style> Patches #"}],"url":"#dom-htmlstyleelement-integrity"},
 "dom-htmlstyleelement-signature": {"dfnID":"dom-htmlstyleelement-signature","dfnText":"signature","external":false,"refSections":[{"refs":[{"id":"ref-for-dom-htmlstyleelement-signature"}],"title":"2.2.2. <style> Patches #"}],"url":"#dom-htmlstyleelement-signature"},
@@ -1578,6 +1571,7 @@ let dfnPanelData = {
 "element-attrdef-style-signature": {"dfnID":"element-attrdef-style-signature","dfnText":"signature","external":false,"refSections":[],"url":"#element-attrdef-style-signature"},
 "element-has-an-invalid-inline-signature": {"dfnID":"element-has-an-invalid-inline-signature","dfnText":"has an invalid inline signature","external":false,"refSections":[{"refs":[{"id":"ref-for-element-has-an-invalid-inline-signature"}],"title":"2.2.3. Script execution"},{"refs":[{"id":"ref-for-element-has-an-invalid-inline-signature\u2460"}],"title":"2.2.4. Style application"}],"url":"#element-has-an-invalid-inline-signature"},
 "f937b7b6": {"dfnID":"f937b7b6","dfnText":"continue","external":true,"refSections":[{"refs":[{"id":"ref-for-iteration-continue"},{"id":"ref-for-iteration-continue\u2460"},{"id":"ref-for-iteration-continue\u2461"},{"id":"ref-for-iteration-continue\u2462"},{"id":"ref-for-iteration-continue\u2463"}],"title":"2.1. Validation"}],"url":"https://infra.spec.whatwg.org/#iteration-continue"},
+"fdb3430f": {"dfnID":"fdb3430f","dfnText":"data block","external":true,"refSections":[{"refs":[{"id":"ref-for-data-block"}],"title":"2.2.1. <script> Patches #"}],"url":"https://html.spec.whatwg.org/multipage/scripting.html#data-block"},
 };
 
 document.addEventListener("DOMContentLoaded", ()=>{
@@ -1982,6 +1976,7 @@ let refsData = {
 "https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions": {"displayText":"CEReactions","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"CEReactions","type":"extended-attribute","url":"https://html.spec.whatwg.org/multipage/custom-elements.html#cereactions"},
 "https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity": {"displayText":"integrity","export":true,"for_":["script"],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"integrity","type":"element-attr","url":"https://html.spec.whatwg.org/multipage/scripting.html#attr-script-integrity"},
 "https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src": {"displayText":"src","export":true,"for_":["script"],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"src","type":"element-attr","url":"https://html.spec.whatwg.org/multipage/scripting.html#attr-script-src"},
+"https://html.spec.whatwg.org/multipage/scripting.html#data-block": {"displayText":"data block","export":false,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"data block","type":"dfn","url":"https://html.spec.whatwg.org/multipage/scripting.html#data-block"},
 "https://html.spec.whatwg.org/multipage/scripting.html#htmlscriptelement": {"displayText":"HTMLScriptElement","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"HTMLScriptElement","type":"interface","url":"https://html.spec.whatwg.org/multipage/scripting.html#htmlscriptelement"},
 "https://html.spec.whatwg.org/multipage/scripting.html#script": {"displayText":"script","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"script","type":"element","url":"https://html.spec.whatwg.org/multipage/scripting.html#script"},
 "https://html.spec.whatwg.org/multipage/semantics.html#htmlstyleelement": {"displayText":"HTMLStyleElement","export":true,"for_":[],"level":"1","normative":true,"shortname":"html","spec":"html","status":"current","text":"HTMLStyleElement","type":"interface","url":"https://html.spec.whatwg.org/multipage/semantics.html#htmlstyleelement"},
@@ -1997,7 +1992,6 @@ let refsData = {
 "https://infra.spec.whatwg.org/#list-iterate": {"displayText":"for each","export":true,"for_":["list","set"],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"for each","type":"dfn","url":"https://infra.spec.whatwg.org/#list-iterate"},
 "https://infra.spec.whatwg.org/#split-on-ascii-whitespace": {"displayText":"split on ASCII whitespace","export":true,"for_":[],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"split on ascii whitespace","type":"dfn","url":"https://infra.spec.whatwg.org/#split-on-ascii-whitespace"},
 "https://infra.spec.whatwg.org/#strictly-split": {"displayText":"strictly split","export":true,"for_":[],"level":"1","normative":true,"shortname":"infra","spec":"infra","status":"current","text":"strictly split","type":"dfn","url":"https://infra.spec.whatwg.org/#strictly-split"},
-"https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks": {"displayText":"Data Blocks","export":true,"for_":["ECMAScript"],"level":"1","normative":true,"shortname":"ecmascript","spec":"ecmascript","status":"current","text":"data blocks","type":"dfn","url":"https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-data-blocks"},
 "https://w3c.github.io/webappsec-csp/#content-security-policy": {"displayText":"Content Security Policy","export":true,"for_":[],"level":"3","normative":true,"shortname":"csp","spec":"csp3","status":"current","text":"content security policy","type":"dfn","url":"https://w3c.github.io/webappsec-csp/#content-security-policy"},
 "https://w3c.github.io/webappsec-csp/#header-content-security-policy": {"displayText":"Content-Security-Policy","export":true,"for_":[],"level":"3","normative":true,"shortname":"csp","spec":"csp3","status":"current","text":"content-security-policy","type":"http-header","url":"https://w3c.github.io/webappsec-csp/#header-content-security-policy"},
 "https://w3c.github.io/webappsec-csp/#should-block-inline": {"displayText":"Should element's inline type behavior be blocked by Content Security Policy?","export":true,"for_":[],"level":"3","normative":true,"shortname":"csp","spec":"csp3","status":"current","text":"should element's inline type behavior be blocked by content security policy?","type":"dfn","url":"https://w3c.github.io/webappsec-csp/#should-block-inline"},

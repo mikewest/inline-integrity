@@ -30,6 +30,7 @@ Toggle Diffs: true
 </pre>
 <pre class="link-defaults">
 spec:dom; type:dfn; text:element
+spec:html; type:dfn; text:data block
 spec:html; type:element; text:link
 spec:html; type:element; text:script
 spec:html; type:element; text:style
